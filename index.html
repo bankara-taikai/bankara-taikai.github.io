@@ -124,6 +124,16 @@
       .fchip[aria-pressed="true"] .cnt { color: var(--accent-ink); opacity: .65; }
       .fchip.teal[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: #fff; }
       .fchip.teal[aria-pressed="true"] .cnt { color: #fff; }
+      .date-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .date-row input[type="date"] {
+        font: inherit; font-size: 14px; font-weight: 700;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 6px 10px;
+        color-scheme: light dark;
+      }
       .status-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
       .result-count { font-size: 13px; color: var(--ink-2); }
       .result-count strong { font-size: 17px; color: var(--ink); }
@@ -181,6 +191,13 @@
       .event .time { font-size: 19px; font-weight: 800; line-height: 1.25; }
       .event .time .tbd { font-size: 12px; font-weight: 700; color: var(--ink-3); font-family: "Zen Kaku Gothic New", sans-serif; }
       .event h3 { margin: 1px 0 0; font-size: 16.5px; font-weight: 900; line-height: 1.4; }
+      .new-badge {
+        display: inline-block; vertical-align: 3px;
+        font-family: "Archivo", "Zen Kaku Gothic New", sans-serif;
+        font-size: 10.5px; font-weight: 800; letter-spacing: .07em;
+        background: var(--accent); color: var(--accent-ink);
+        border-radius: 4px; padding: 1px 6px; margin-right: 7px;
+      }
       .event h3 a { text-decoration: none; }
       .event h3 a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 3px; }
       .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
@@ -284,6 +301,13 @@
               <div class="flabel">表示</div>
               <div class="chips" id="viewChips"></div>
             </div>
+            <div class="fgroup">
+              <div class="flabel">開催日</div>
+              <div class="date-row">
+                <input type="date" id="datePick" aria-label="開催日で絞り込む" />
+                <button type="button" class="clear-btn" id="dateClear" hidden>日付をクリア</button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="status-row">
@@ -314,91 +338,91 @@
 
     <script>
       var EVENTS = [
-        {date:"2026-11-23",time:"20:00",name:"ナワバリフェス2026秋 敗者復活戦",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:false,deadline:"2026-11-23 19:45",url:"https://ikanakama.ink/events/22446",src:"イカナカマ",tags:["ナワバリ"]},
-        {date:"2026-11-23",time:"21:00",name:"第四回ひめまる杯",format:"2vs2",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-11-23 20:45",url:"https://ikanakama.ink/events/22923",src:"イカナカマ",tags:["XP帯指定","ブキ制限"]},
-        {date:"2026-11-23",time:"22:00",name:"TWI cup 10300",format:"4vs4",rule:"ガチエリア",cost:"コスト10300以下",offline:false,deadline:"2026-11-22 21:00",url:"https://ikanakama.ink/events/22768",src:"イカナカマ",tags:["コスト制","XP帯指定"]},
-        {date:"2026-11-24",time:"21:00",name:"mini＊2wins杯35",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-24 20:45",url:"https://ikanakama.ink/events/22884",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-11-24",time:"22:00",name:"ごにょ杯 コスト制エリア10800",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-11-24 21:45",url:"https://ikanakama.ink/events/22872",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-11-24",time:"22:00",name:"突発あるっぷる",format:"2vs2",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-11-24 21:30",url:"https://ikanakama.ink/events/22932",src:"イカナカマ",tags:[]},
-        {date:"2026-11-25",time:"21:30",name:"ごにょ杯 ナワバリトーナメント",format:"",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ",cost:"",offline:false,deadline:"2026-11-25 21:15",url:"https://ikanakama.ink/events/22931",src:"イカナカマ",tags:["ナワバリ"]},
-        {date:"2026-11-25",time:"23:00",name:"えんじょいかっぷ 第18回",format:"4vs4",rule:"ガチエリア",cost:"コスト9023以下",offline:false,deadline:"2026-11-24 22:30",url:"https://ikanakama.ink/events/22744",src:"イカナカマ",tags:["コスト制","XP帯指定"]},
-        {date:"2026-11-27",time:"21:00",name:"Canvas Cup 14th.",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:false,deadline:"2026-11-27 20:45",url:"https://ikanakama.ink/events/22759",src:"イカナカマ",tags:["ナワバリ"]},
-        {date:"2026-11-27",time:"22:00",name:"#21 れんれん杯 コスト10000",format:"4vs4",rule:"ガチエリア",cost:"コスト10000以下",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22680",src:"イカナカマ",tags:["コスト制","XP帯指定"]},
-        {date:"2026-11-27",time:"22:00",name:"BLUEFIN TUNA CUP ep02",format:"4vs4",rule:"ガチヤグラ",cost:"コスト8800以下",offline:false,deadline:"2026-11-24 22:00",url:"https://ikanakama.ink/events/22644",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-11-27",time:"22:00",name:"Sparkle Cup the 4th",format:"4vs4",rule:"ガチエリア",cost:"コスト8400以下",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22816",src:"イカナカマ",tags:["コスト制","XP帯指定"]},
-        {date:"2026-11-27",time:"22:00",name:"第1回ちゃんうめ杯でゅおっ！",format:"2vs2",rule:"ガチエリア",cost:"コスト4700以下",offline:false,deadline:"2026-11-27 00:00",url:"https://ikanakama.ink/events/22724",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-11-28",time:"17:00",name:"第１回ゆずっと黄金杯",format:"",rule:"サーモンラン",cost:"",offline:false,deadline:"2026-11-28 16:55",url:"https://ikanakama.ink/events/22922",src:"イカナカマ",tags:["サーモンラン"]},
-        {date:"2026-11-28",time:"19:00",name:"オプ100人記念ペア杯",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-28 18:45",url:"https://ikanakama.ink/events/22919",src:"イカナカマ",tags:[]},
-        {date:"2026-11-28",time:"20:00",name:"ナワバリフェス2026秋 王者決定戦",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:false,deadline:"",url:"https://ikanakama.ink/events/22447",src:"イカナカマ",tags:["ナワバリ"]},
-        {date:"2026-11-28",time:"20:30",name:"GranDreamCUP",format:"4vs4",rule:"ガチエリア",cost:"コスト10400以下",offline:false,deadline:"2026-11-15 00:00",url:"https://ikanakama.ink/events/22818",src:"イカナカマ",tags:["コスト制","XP帯指定","配信者限定"]},
-        {date:"2026-11-28",time:"21:00",name:"とらきん杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-28 12:00",url:"https://ikanakama.ink/events/22885",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-11-28",time:"22:00",name:"さざなみ杯",format:"",rule:"ガチアサリ",cost:"コスト8200未満／9500未満／10500未満（部門別）",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22619",src:"イカナカマ",tags:["女性限定","コスト制"]},
-        {date:"2026-11-28",time:"22:00",name:"星屑ロンリネス杯 #3",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-11-28 21:50",url:"https://ikanakama.ink/events/22754",src:"イカナカマ",tags:["パワー帯指定"]},
-        {date:"2026-11-28",time:"22:00",name:"第8回+α杯",format:"",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-11-28 19:00",url:"https://ikanakama.ink/events/22639",src:"イカナカマ",tags:["XP帯指定"]},
-        {date:"2026-11-29",time:"10:30",name:"しらおかGO! #4",format:"4vs4",rule:"ナワバリ",cost:"",offline:true,deadline:"",url:"https://www.instagram.com/p/Df9lPKVvGRu/",src:"Instagram",tags:["オフライン","ナワバリ"]},
-        {date:"2026-11-29",time:"21:00",name:"IGL杯 5人制大会",format:"5人制",rule:"ガチエリア",cost:"コスト11400以下",offline:false,deadline:"2026-11-29 20:30",url:"https://ikanakama.ink/events/22664",src:"イカナカマ",tags:["コスト制","XP帯指定"]},
-        {date:"2026-11-29",time:"21:00",name:"あいざっくイカップル",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-29 20:45",url:"https://ikanakama.ink/events/22484",src:"イカナカマ",tags:[]},
-        {date:"2026-11-29",time:"21:00",name:"あそびばVSリスナー",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"",url:"https://www.instagram.com/p/DgD1edjSawK/",src:"Instagram",tags:["ナワバリ"]},
-        {date:"2026-11-29",time:"21:00",name:"第16回 みもペア鮭杯",format:"2vs2",rule:"サーモンラン",cost:"",offline:false,deadline:"2026-11-29 20:45",url:"https://ikanakama.ink/events/22786",src:"イカナカマ",tags:["サーモンラン"]},
-        {date:"2026-11-29",time:"21:00",name:"第三回あるっぷる杯",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-28 23:59",url:"https://ikanakama.ink/events/22793",src:"イカナカマ",tags:[]},
-        {date:"2026-11-30",time:"22:00",name:"ごにょ杯 ナワバリ #20",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-11-30 21:45",url:"https://ikanakama.ink/events/22886",src:"イカナカマ",tags:["ナワバリ"]},
-        {date:"2026-12-04",time:"21:00",name:"あにゃむす杯",format:"4vs4",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-12-04 21:00",url:"https://ikanakama.ink/events/22736",src:"イカナカマ",tags:["ナワバリ"]},
-        {date:"2026-12-05",time:"12:00",name:"AREA CUP Live!",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:true,deadline:"2026-10-31 23:59",url:"https://ikanakama.ink/events/20906",src:"イカナカマ",tags:["オフライン"]},
-        {date:"2026-12-05",time:"21:00",name:"第2回カーボン必須杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-05 20:30",url:"https://ikanakama.ink/events/21928",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-12-05",time:"22:00",name:"Blitz Cup -電光石火- 老若男女ガチアサリ",format:"4vs4",rule:"ガチアサリ",cost:"コスト8200未満／9600未満／11000未満（部門別）",offline:false,deadline:"2026-12-05 21:00",url:"https://ikanakama.ink/events/22620",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-05",time:"22:00",name:"CORE RANGE CUP",format:"4vs4",rule:"ガチエリア",cost:"コスト8400以下",offline:false,deadline:"2026-12-05 00:00",url:"https://ikanakama.ink/events/22772",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-05",time:"22:00",name:"HaruiLobby -Vol.5-",format:"4vs4",rule:"ガチエリア",cost:"コスト9200以下",offline:false,deadline:"2026-12-05 18:00",url:"https://ikanakama.ink/events/22800",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-05",time:"22:00",name:"ペアマッチングてり杯",format:"2vs2 / 4vs4",rule:"ガチエリア",cost:"ペアコスト5250以上5500以下",offline:false,deadline:"2026-12-05 22:00",url:"https://ikanakama.ink/events/22473",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-05",time:"22:00",name:"第1回にあのっち杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-05 21:30",url:"https://ikanakama.ink/events/22827",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-12-05",time:"22:00",name:"第2回じみー生誕祭",format:"4vs4",rule:"ガチエリア",cost:"コスト11800以下",offline:false,deadline:"2026-12-05 21:45",url:"https://ikanakama.ink/events/22835",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-05",time:"",name:"ギャモ杯U-80",format:"4vs4",rule:"ガチヤグラ",cost:"コスト8000以下",offline:false,deadline:"2026-11-30",url:"https://x.com/supa_ao0305/status/2125086746560065712",src:"X",tags:[]},
-        {date:"2026-12-06",time:"21:00",name:"うれっしーイカップル杯",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-06 20:50",url:"https://ikanakama.ink/events/22813",src:"イカナカマ",tags:["男女限定"]},
-        {date:"2026-12-06",time:"21:00",name:"亜種武器杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-06 20:30",url:"https://ikanakama.ink/events/22765",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-12-07",time:"22:00",name:"てり杯 24-27部門",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-07 21:00",url:"https://ikanakama.ink/events/22757",src:"イカナカマ",tags:["XP帯指定"]},
-        {date:"2026-12-11",time:"21:00",name:"オタク杯3.5 文化祭～Revenge～",format:"4vs4",rule:"ナワバリ",cost:"コスト9200以下",offline:false,deadline:"2026-12-06 06:00",url:"https://ikanakama.ink/events/22823",src:"イカナカマ",tags:["コスト制","ナワバリ","推し限定"]},
-        {date:"2026-12-11",time:"21:00",name:"第二回 ドリンクごくごく杯 ～クリスマスパーティーナイト～",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-11 20:30",url:"https://ikanakama.ink/events/22836",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-12-11",time:"22:00",name:"第2回 Symphony Cup",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-12-10 23:59",url:"https://ikanakama.ink/events/22805",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-12",time:"21:00",name:"星屑ロンリネス杯 #4",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-12 20:50",url:"https://ikanakama.ink/events/22755",src:"イカナカマ",tags:["パワー帯指定"]},
-        {date:"2026-12-12",time:"21:00",name:"第1回 思い立ったが吉日！杯 ~武器ランダム~",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-12 20:45",url:"https://ikanakama.ink/events/22775",src:"イカナカマ",tags:["ブキランダム"]},
-        {date:"2026-12-12",time:"21:00",name:"第1回武器統一わさっぷる！",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-12 20:50",url:"https://ikanakama.ink/events/22425",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-12-12",time:"21:00",name:"第六回龍鱗杯",format:"4vs4",rule:"ガチヤグラ",cost:"コスト10000以下",offline:false,deadline:"2026-12-12 20:00",url:"https://ikanakama.ink/events/22852",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-12",time:"21:30",name:"ごにょ杯 ナワバリ EXTRA",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-12-12 21:00",url:"https://ikanakama.ink/events/22815",src:"イカナカマ",tags:["ナワバリ"]},
-        {date:"2026-12-12",time:"22:00",name:"しるべ杯9600",format:"4vs4",rule:"ガチエリア",cost:"コスト9600以下",offline:false,deadline:"2026-12-11 22:00",url:"https://ikanakama.ink/events/22769",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-12",time:"22:00",name:"はぜカップ",format:"4vs4",rule:"ナワバリ",cost:"コスト10800以下",offline:false,deadline:"2026-12-11 22:00",url:"https://ikanakama.ink/events/22826",src:"イカナカマ",tags:["コスト制","ナワバリ"]},
-        {date:"2026-12-12",time:"22:00",name:"編成固定杯",format:"",rule:"",cost:"無制限",offline:false,deadline:"2026-12-10 22:00",url:"https://ikanakama.ink/events/22821",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-12-12",time:"22:00",name:"🌱第9回わかあつ杯 ヤグラ10000 更新時期で軽減あり🌱",format:"4vs4",rule:"ガチヤグラ",cost:"コスト10000以下",offline:false,deadline:"2026-12-12 00:00",url:"https://ikanakama.ink/events/22927",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-13",time:"14:30",name:"いかてらす #4 ナワバリバトル",format:"4vs4",rule:"ナワバリ",cost:"",offline:true,deadline:"2026-12-10 23:59",url:"https://ikanakama.ink/events/22720",src:"イカナカマ",tags:["オフライン","ナワバリ"]},
-        {date:"2026-12-13",time:"21:00",name:"EMBLEMS #16",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-13 20:30",url:"https://ikanakama.ink/events/22866",src:"イカナカマ",tags:[]},
-        {date:"2026-12-13",time:"21:00",name:"第3回 つなめろっぷる",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-13 20:45",url:"https://ikanakama.ink/events/22778",src:"イカナカマ",tags:[]},
-        {date:"2026-12-13",time:"21:00",name:"＜予告＞ガチアサリの日杯 コストなしスイスドロー",format:"",rule:"ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-13 21:00",url:"https://ikanakama.ink/events/22621",src:"イカナカマ",tags:[]},
-        {date:"2026-12-13",time:"",name:"寿都町クリスマス大会",format:"",rule:"",cost:"",offline:true,deadline:"2026-11-27",url:"https://www.instagram.com/p/Df9LWnEmUFN/",src:"Instagram",tags:["オフライン"]},
-        {date:"2026-12-18",time:"21:00",name:"第12回らてっぷる杯 無制限",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-18 20:00",url:"https://ikanakama.ink/events/22865",src:"イカナカマ",tags:[]},
-        {date:"2026-12-18",time:"21:00",name:"🌱第2回たにもとイカップル杯🌱",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-18 20:55",url:"https://ikanakama.ink/events/22714",src:"イカナカマ",tags:[]},
-        {date:"2026-12-19",time:"21:00",name:"EMBLEMS-HOPES- #4",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"コスト10500以下",offline:false,deadline:"2026-12-19 20:30",url:"https://ikanakama.ink/events/22868",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-19",time:"21:00",name:"Queens cup",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-18 23:59",url:"https://ikanakama.ink/events/22832",src:"イカナカマ",tags:["女性限定"]},
-        {date:"2026-12-19",time:"21:00",name:"「冥」「冥」ナモCUP",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-18 23:45",url:"https://ikanakama.ink/events/22797",src:"イカナカマ",tags:["ブキ統一"]},
-        {date:"2026-12-19",time:"21:00",name:"第4回 まなみ杯",format:"4vs4",rule:"",cost:"コスト10900以下",offline:false,deadline:"2026-12-19 20:30",url:"https://ikanakama.ink/events/22314",src:"イカナカマ",tags:["コスト制","XP帯指定","ブキ制限"]},
-        {date:"2026-12-19",time:"22:00",name:"ちゃんうめ杯vol.3",format:"",rule:"ガチエリア",cost:"コスト9100以下",offline:false,deadline:"2026-12-18 00:00",url:"https://ikanakama.ink/events/22881",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-19",time:"22:00",name:"コスト7800！さあみんなでバトル祭りだー！！",format:"3vs3",rule:"ガチヤグラ",cost:"コスト7800以下",offline:false,deadline:"2026-12-18 23:00",url:"https://ikanakama.ink/events/22862",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-19",time:"22:00",name:"第2回ニワトリ杯 7500",format:"4vs4",rule:"ガチエリア",cost:"コスト7500以下",offline:false,deadline:"2026-12-18 22:00",url:"https://ikanakama.ink/events/22748",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-19",time:"22:30",name:"ヤグラ争奪大決戦 ～ヤグラ取物語～ 第二章 三色決戦",format:"4vs4",rule:"ガチヤグラ",cost:"コスト8500以下",offline:false,deadline:"2026-12-15 20:00",url:"https://x.com/roQ7BAttL2EW5Ny/status/2125166175814602994",src:"X",tags:["ブキ制限"]},
-        {date:"2026-12-19",time:"22:00",name:"ちりこん杯",format:"3vs3",rule:"ガチヤグラ",cost:"コスト7800以下",offline:false,deadline:"2026-12-19 21:00",url:"https://x.com/choco_tima1218/status/2120859004511658347",src:"X",tags:[]},
-        {date:"2026-12-20",time:"15:45",name:"ランダム武器エリア杯",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-20 15:30",url:"https://ikanakama.ink/events/22788",src:"イカナカマ",tags:["ブキランダム"]},
-        {date:"2026-12-20",time:"21:00",name:"EMBLEMS #17",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-20 20:30",url:"https://ikanakama.ink/events/22867",src:"イカナカマ",tags:[]},
-        {date:"2026-12-20",time:"21:00",name:"クリスマスちあっぷる杯！！",format:"2vs2",rule:"ガチヤグラ",cost:"無制限",offline:false,deadline:"2026-12-20 20:15",url:"https://ikanakama.ink/events/22640",src:"イカナカマ",tags:["男女限定"]},
-        {date:"2026-12-20",time:"22:00",name:"冷笑杯",format:"4vs4",rule:"ガチエリア",cost:"コスト11000以下",offline:false,deadline:"2026-12-20 21:55",url:"https://ikanakama.ink/events/22924",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-21",time:"22:00",name:"第7回りるりる杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-21 21:45",url:"https://ikanakama.ink/events/22475",src:"イカナカマ",tags:[]},
-        {date:"2026-12-23",time:"21:00",name:"ちあっぷる杯ｰコスト10800",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-12-23 20:15",url:"https://ikanakama.ink/events/22873",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-24",time:"21:00",name:"クリスマス記念タイマン杯",format:"1vs1",rule:"ガチヤグラ",cost:"",offline:false,deadline:"2026-12-24 20:55",url:"https://ikanakama.ink/events/22693",src:"イカナカマ",tags:["タイマン"]},
-        {date:"2026-12-24",time:"21:00",name:"第10回2wins杯（仮）",format:"2vs2",rule:"",cost:"",offline:false,deadline:"2026-12-24 20:00",url:"https://ikanakama.ink/events/22783",src:"イカナカマ",tags:["男女限定","ブキ統一"]},
-        {date:"2026-12-25",time:"21:00",name:"第2回りちっぷる杯",format:"2vs2",rule:"ガチヤグラ",cost:"無制限",offline:false,deadline:"2026-12-25 20:15",url:"https://ikanakama.ink/events/22814",src:"イカナカマ",tags:[]},
-        {date:"2026-12-26",time:"13:00",name:"Salmon Party！mini #2",format:"",rule:"サーモンラン",cost:"",offline:true,deadline:"2026-12-25 12:00",url:"https://ikanakama.ink/events/22480",src:"イカナカマ",tags:["サーモンラン","オフライン"]},
-        {date:"2026-12-26",time:"21:00",name:"EMBLEMS-HOPES- #5",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"コスト10500以下",offline:false,deadline:"2026-12-26 20:30",url:"https://ikanakama.ink/events/22869",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-26",time:"21:00",name:"＜予告＞アサリップル杯 ダブルイカップル メリクリ！",format:"4vs4",rule:"ガチアサリ",cost:"",offline:false,deadline:"2026-12-25 21:00",url:"https://ikanakama.ink/events/22622",src:"イカナカマ",tags:["男女限定"]},
-        {date:"2026-12-26",time:"22:00",name:"星屑ロンリネス杯 #5",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-26 21:50",url:"https://ikanakama.ink/events/22756",src:"イカナカマ",tags:["パワー帯指定"]},
-        {date:"2026-12-27",time:"10:00",name:"SplashGo! #14.5 in OSAKA",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:true,deadline:"2026-12-20 22:00",url:"https://ikanakama.ink/events/22493",src:"イカナカマ",tags:["オフライン","ナワバリ"]},
-        {date:"2026-12-27",time:"22:00",name:"ちゃんうめ杯vol.4",format:"",rule:"ガチエリア",cost:"コスト9700以下",offline:false,deadline:"2026-12-27 00:00",url:"https://ikanakama.ink/events/22882",src:"イカナカマ",tags:["コスト制"]},
-        {date:"2026-12-27",time:"22:00",name:"クレイジーカップル杯",format:"2vs2",rule:"ガチヤグラ",cost:"コスト5500以下",offline:false,deadline:"2026-12-27 05:00",url:"https://ikanakama.ink/events/22608",src:"イカナカマ",tags:["コスト制"]}
+        {date:"2026-11-23",time:"20:00",name:"ナワバリフェス2026秋 敗者復活戦",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:false,deadline:"2026-11-23 19:45",url:"https://ikanakama.ink/events/22446",src:"イカナカマ",tags:["ナワバリ"],added:"2026-11-22"},
+        {date:"2026-11-23",time:"21:00",name:"第四回ひめまる杯",format:"2vs2",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-11-23 20:45",url:"https://ikanakama.ink/events/22923",src:"イカナカマ",tags:["XP帯指定","ブキ制限"],added:"2026-11-22"},
+        {date:"2026-11-23",time:"22:00",name:"TWI cup 10300",format:"4vs4",rule:"ガチエリア",cost:"コスト10300以下",offline:false,deadline:"2026-11-22 21:00",url:"https://ikanakama.ink/events/22768",src:"イカナカマ",tags:["コスト制","XP帯指定"],added:"2026-11-22"},
+        {date:"2026-11-24",time:"21:00",name:"mini＊2wins杯35",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-24 20:45",url:"https://ikanakama.ink/events/22884",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-11-24",time:"22:00",name:"ごにょ杯 コスト制エリア10800",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-11-24 21:45",url:"https://ikanakama.ink/events/22872",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-11-24",time:"22:00",name:"突発あるっぷる",format:"2vs2",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-11-24 21:30",url:"https://ikanakama.ink/events/22932",src:"イカナカマ",tags:[],added:"2026-11-24"},
+        {date:"2026-11-25",time:"21:30",name:"ごにょ杯 ナワバリトーナメント",format:"",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ",cost:"",offline:false,deadline:"2026-11-25 21:15",url:"https://ikanakama.ink/events/22931",src:"イカナカマ",tags:["ナワバリ"],added:"2026-11-24"},
+        {date:"2026-11-25",time:"23:00",name:"えんじょいかっぷ 第18回",format:"4vs4",rule:"ガチエリア",cost:"コスト9023以下",offline:false,deadline:"2026-11-24 22:30",url:"https://ikanakama.ink/events/22744",src:"イカナカマ",tags:["コスト制","XP帯指定"],added:"2026-11-22"},
+        {date:"2026-11-27",time:"21:00",name:"Canvas Cup 14th.",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:false,deadline:"2026-11-27 20:45",url:"https://ikanakama.ink/events/22759",src:"イカナカマ",tags:["ナワバリ"],added:"2026-11-22"},
+        {date:"2026-11-27",time:"22:00",name:"#21 れんれん杯 コスト10000",format:"4vs4",rule:"ガチエリア",cost:"コスト10000以下",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22680",src:"イカナカマ",tags:["コスト制","XP帯指定"],added:"2026-11-22"},
+        {date:"2026-11-27",time:"22:00",name:"BLUEFIN TUNA CUP ep02",format:"4vs4",rule:"ガチヤグラ",cost:"コスト8800以下",offline:false,deadline:"2026-11-24 22:00",url:"https://ikanakama.ink/events/22644",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-11-27",time:"22:00",name:"Sparkle Cup the 4th",format:"4vs4",rule:"ガチエリア",cost:"コスト8400以下",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22816",src:"イカナカマ",tags:["コスト制","XP帯指定"],added:"2026-11-22"},
+        {date:"2026-11-27",time:"22:00",name:"第1回ちゃんうめ杯でゅおっ！",format:"2vs2",rule:"ガチエリア",cost:"コスト4700以下",offline:false,deadline:"2026-11-27 00:00",url:"https://ikanakama.ink/events/22724",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-11-28",time:"17:00",name:"第１回ゆずっと黄金杯",format:"",rule:"サーモンラン",cost:"",offline:false,deadline:"2026-11-28 16:55",url:"https://ikanakama.ink/events/22922",src:"イカナカマ",tags:["サーモンラン"],added:"2026-11-22"},
+        {date:"2026-11-28",time:"19:00",name:"オプ100人記念ペア杯",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-28 18:45",url:"https://ikanakama.ink/events/22919",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-11-28",time:"20:00",name:"ナワバリフェス2026秋 王者決定戦",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:false,deadline:"",url:"https://ikanakama.ink/events/22447",src:"イカナカマ",tags:["ナワバリ"],added:"2026-11-22"},
+        {date:"2026-11-28",time:"20:30",name:"GranDreamCUP",format:"4vs4",rule:"ガチエリア",cost:"コスト10400以下",offline:false,deadline:"2026-11-15 00:00",url:"https://ikanakama.ink/events/22818",src:"イカナカマ",tags:["コスト制","XP帯指定","配信者限定"],added:"2026-11-22"},
+        {date:"2026-11-28",time:"21:00",name:"とらきん杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-28 12:00",url:"https://ikanakama.ink/events/22885",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-11-28",time:"22:00",name:"さざなみ杯",format:"",rule:"ガチアサリ",cost:"コスト8200未満／9500未満／10500未満（部門別）",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22619",src:"イカナカマ",tags:["女性限定","コスト制"],added:"2026-11-22"},
+        {date:"2026-11-28",time:"22:00",name:"星屑ロンリネス杯 #3",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-11-28 21:50",url:"https://ikanakama.ink/events/22754",src:"イカナカマ",tags:["パワー帯指定"],added:"2026-11-22"},
+        {date:"2026-11-28",time:"22:00",name:"第8回+α杯",format:"",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-11-28 19:00",url:"https://ikanakama.ink/events/22639",src:"イカナカマ",tags:["XP帯指定"],added:"2026-11-22"},
+        {date:"2026-11-29",time:"10:30",name:"しらおかGO! #4",format:"4vs4",rule:"ナワバリ",cost:"",offline:true,deadline:"",url:"https://www.instagram.com/p/Df9lPKVvGRu/",src:"Instagram",tags:["オフライン","ナワバリ"],added:"2026-11-22"},
+        {date:"2026-11-29",time:"21:00",name:"IGL杯 5人制大会",format:"5人制",rule:"ガチエリア",cost:"コスト11400以下",offline:false,deadline:"2026-11-29 20:30",url:"https://ikanakama.ink/events/22664",src:"イカナカマ",tags:["コスト制","XP帯指定"],added:"2026-11-22"},
+        {date:"2026-11-29",time:"21:00",name:"あいざっくイカップル",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-29 20:45",url:"https://ikanakama.ink/events/22484",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-11-29",time:"21:00",name:"あそびばVSリスナー",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"",url:"https://www.instagram.com/p/DgD1edjSawK/",src:"Instagram",tags:["ナワバリ"],added:"2026-11-22"},
+        {date:"2026-11-29",time:"21:00",name:"第16回 みもペア鮭杯",format:"2vs2",rule:"サーモンラン",cost:"",offline:false,deadline:"2026-11-29 20:45",url:"https://ikanakama.ink/events/22786",src:"イカナカマ",tags:["サーモンラン"],added:"2026-11-22"},
+        {date:"2026-11-29",time:"21:00",name:"第三回あるっぷる杯",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-28 23:59",url:"https://ikanakama.ink/events/22793",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-11-30",time:"22:00",name:"ごにょ杯 ナワバリ #20",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-11-30 21:45",url:"https://ikanakama.ink/events/22886",src:"イカナカマ",tags:["ナワバリ"],added:"2026-11-22"},
+        {date:"2026-12-04",time:"21:00",name:"あにゃむす杯",format:"4vs4",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-12-04 21:00",url:"https://ikanakama.ink/events/22736",src:"イカナカマ",tags:["ナワバリ"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"12:00",name:"AREA CUP Live!",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:true,deadline:"2026-10-31 23:59",url:"https://ikanakama.ink/events/20906",src:"イカナカマ",tags:["オフライン"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"21:00",name:"第2回カーボン必須杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-05 20:30",url:"https://ikanakama.ink/events/21928",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"22:00",name:"Blitz Cup -電光石火- 老若男女ガチアサリ",format:"4vs4",rule:"ガチアサリ",cost:"コスト8200未満／9600未満／11000未満（部門別）",offline:false,deadline:"2026-12-05 21:00",url:"https://ikanakama.ink/events/22620",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"22:00",name:"CORE RANGE CUP",format:"4vs4",rule:"ガチエリア",cost:"コスト8400以下",offline:false,deadline:"2026-12-05 00:00",url:"https://ikanakama.ink/events/22772",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"22:00",name:"HaruiLobby -Vol.5-",format:"4vs4",rule:"ガチエリア",cost:"コスト9200以下",offline:false,deadline:"2026-12-05 18:00",url:"https://ikanakama.ink/events/22800",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"22:00",name:"ペアマッチングてり杯",format:"2vs2 / 4vs4",rule:"ガチエリア",cost:"ペアコスト5250以上5500以下",offline:false,deadline:"2026-12-05 22:00",url:"https://ikanakama.ink/events/22473",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"22:00",name:"第1回にあのっち杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-05 21:30",url:"https://ikanakama.ink/events/22827",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"22:00",name:"第2回じみー生誕祭",format:"4vs4",rule:"ガチエリア",cost:"コスト11800以下",offline:false,deadline:"2026-12-05 21:45",url:"https://ikanakama.ink/events/22835",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-05",time:"",name:"ギャモ杯U-80",format:"4vs4",rule:"ガチヤグラ",cost:"コスト8000以下",offline:false,deadline:"2026-11-30",url:"https://x.com/supa_ao0305/status/2125086746560065712",src:"X",tags:[],added:"2026-11-24"},
+        {date:"2026-12-06",time:"21:00",name:"うれっしーイカップル杯",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-06 20:50",url:"https://ikanakama.ink/events/22813",src:"イカナカマ",tags:["男女限定"],added:"2026-11-22"},
+        {date:"2026-12-06",time:"21:00",name:"亜種武器杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-06 20:30",url:"https://ikanakama.ink/events/22765",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-12-07",time:"22:00",name:"てり杯 24-27部門",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-07 21:00",url:"https://ikanakama.ink/events/22757",src:"イカナカマ",tags:["XP帯指定"],added:"2026-11-22"},
+        {date:"2026-12-11",time:"21:00",name:"オタク杯3.5 文化祭～Revenge～",format:"4vs4",rule:"ナワバリ",cost:"コスト9200以下",offline:false,deadline:"2026-12-06 06:00",url:"https://ikanakama.ink/events/22823",src:"イカナカマ",tags:["コスト制","ナワバリ","推し限定"],added:"2026-11-22"},
+        {date:"2026-12-11",time:"21:00",name:"第二回 ドリンクごくごく杯 ～クリスマスパーティーナイト～",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-11 20:30",url:"https://ikanakama.ink/events/22836",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-12-11",time:"22:00",name:"第2回 Symphony Cup",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-12-10 23:59",url:"https://ikanakama.ink/events/22805",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"21:00",name:"星屑ロンリネス杯 #4",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-12 20:50",url:"https://ikanakama.ink/events/22755",src:"イカナカマ",tags:["パワー帯指定"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"21:00",name:"第1回 思い立ったが吉日！杯 ~武器ランダム~",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-12 20:45",url:"https://ikanakama.ink/events/22775",src:"イカナカマ",tags:["ブキランダム"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"21:00",name:"第1回武器統一わさっぷる！",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-12 20:50",url:"https://ikanakama.ink/events/22425",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"21:00",name:"第六回龍鱗杯",format:"4vs4",rule:"ガチヤグラ",cost:"コスト10000以下",offline:false,deadline:"2026-12-12 20:00",url:"https://ikanakama.ink/events/22852",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"21:30",name:"ごにょ杯 ナワバリ EXTRA",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-12-12 21:00",url:"https://ikanakama.ink/events/22815",src:"イカナカマ",tags:["ナワバリ"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"22:00",name:"しるべ杯9600",format:"4vs4",rule:"ガチエリア",cost:"コスト9600以下",offline:false,deadline:"2026-12-11 22:00",url:"https://ikanakama.ink/events/22769",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"22:00",name:"はぜカップ",format:"4vs4",rule:"ナワバリ",cost:"コスト10800以下",offline:false,deadline:"2026-12-11 22:00",url:"https://ikanakama.ink/events/22826",src:"イカナカマ",tags:["コスト制","ナワバリ"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"22:00",name:"編成固定杯",format:"",rule:"",cost:"無制限",offline:false,deadline:"2026-12-10 22:00",url:"https://ikanakama.ink/events/22821",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-12-12",time:"22:00",name:"🌱第9回わかあつ杯 ヤグラ10000 更新時期で軽減あり🌱",format:"4vs4",rule:"ガチヤグラ",cost:"コスト10000以下",offline:false,deadline:"2026-12-12 00:00",url:"https://ikanakama.ink/events/22927",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-13",time:"14:30",name:"いかてらす #4 ナワバリバトル",format:"4vs4",rule:"ナワバリ",cost:"",offline:true,deadline:"2026-12-10 23:59",url:"https://ikanakama.ink/events/22720",src:"イカナカマ",tags:["オフライン","ナワバリ"],added:"2026-11-22"},
+        {date:"2026-12-13",time:"21:00",name:"EMBLEMS #16",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-13 20:30",url:"https://ikanakama.ink/events/22866",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-12-13",time:"21:00",name:"第3回 つなめろっぷる",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-13 20:45",url:"https://ikanakama.ink/events/22778",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-12-13",time:"21:00",name:"＜予告＞ガチアサリの日杯 コストなしスイスドロー",format:"",rule:"ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-13 21:00",url:"https://ikanakama.ink/events/22621",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-12-13",time:"",name:"寿都町クリスマス大会",format:"",rule:"",cost:"",offline:true,deadline:"2026-11-27",url:"https://www.instagram.com/p/Df9LWnEmUFN/",src:"Instagram",tags:["オフライン"],added:"2026-11-22"},
+        {date:"2026-12-18",time:"21:00",name:"第12回らてっぷる杯 無制限",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-18 20:00",url:"https://ikanakama.ink/events/22865",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-12-18",time:"21:00",name:"🌱第2回たにもとイカップル杯🌱",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-18 20:55",url:"https://ikanakama.ink/events/22714",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-12-19",time:"21:00",name:"EMBLEMS-HOPES- #4",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"コスト10500以下",offline:false,deadline:"2026-12-19 20:30",url:"https://ikanakama.ink/events/22868",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-19",time:"21:00",name:"Queens cup",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-18 23:59",url:"https://ikanakama.ink/events/22832",src:"イカナカマ",tags:["女性限定"],added:"2026-11-22"},
+        {date:"2026-12-19",time:"21:00",name:"「冥」「冥」ナモCUP",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-18 23:45",url:"https://ikanakama.ink/events/22797",src:"イカナカマ",tags:["ブキ統一"],added:"2026-11-22"},
+        {date:"2026-12-19",time:"21:00",name:"第4回 まなみ杯",format:"4vs4",rule:"",cost:"コスト10900以下",offline:false,deadline:"2026-12-19 20:30",url:"https://ikanakama.ink/events/22314",src:"イカナカマ",tags:["コスト制","XP帯指定","ブキ制限"],added:"2026-11-22"},
+        {date:"2026-12-19",time:"22:00",name:"ちゃんうめ杯vol.3",format:"",rule:"ガチエリア",cost:"コスト9100以下",offline:false,deadline:"2026-12-18 00:00",url:"https://ikanakama.ink/events/22881",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-19",time:"22:00",name:"コスト7800！さあみんなでバトル祭りだー！！",format:"3vs3",rule:"ガチヤグラ",cost:"コスト7800以下",offline:false,deadline:"2026-12-18 23:00",url:"https://ikanakama.ink/events/22862",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-19",time:"22:00",name:"第2回ニワトリ杯 7500",format:"4vs4",rule:"ガチエリア",cost:"コスト7500以下",offline:false,deadline:"2026-12-18 22:00",url:"https://ikanakama.ink/events/22748",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-19",time:"22:30",name:"ヤグラ争奪大決戦 ～ヤグラ取物語～ 第二章 三色決戦",format:"4vs4",rule:"ガチヤグラ",cost:"コスト8500以下",offline:false,deadline:"2026-12-15 20:00",url:"https://x.com/roQ7BAttL2EW5Ny/status/2125166175814602994",src:"X",tags:["ブキ制限"],added:"2026-11-24"},
+        {date:"2026-12-19",time:"22:00",name:"ちりこん杯",format:"3vs3",rule:"ガチヤグラ",cost:"コスト7800以下",offline:false,deadline:"2026-12-19 21:00",url:"https://x.com/choco_tima1218/status/2120859004511658347",src:"X",tags:[],added:"2026-11-24"},
+        {date:"2026-12-20",time:"15:45",name:"ランダム武器エリア杯",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-20 15:30",url:"https://ikanakama.ink/events/22788",src:"イカナカマ",tags:["ブキランダム"],added:"2026-11-22"},
+        {date:"2026-12-20",time:"21:00",name:"EMBLEMS #17",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-20 20:30",url:"https://ikanakama.ink/events/22867",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-12-20",time:"21:00",name:"クリスマスちあっぷる杯！！",format:"2vs2",rule:"ガチヤグラ",cost:"無制限",offline:false,deadline:"2026-12-20 20:15",url:"https://ikanakama.ink/events/22640",src:"イカナカマ",tags:["男女限定"],added:"2026-11-22"},
+        {date:"2026-12-20",time:"22:00",name:"冷笑杯",format:"4vs4",rule:"ガチエリア",cost:"コスト11000以下",offline:false,deadline:"2026-12-20 21:55",url:"https://ikanakama.ink/events/22924",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-21",time:"22:00",name:"第7回りるりる杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-21 21:45",url:"https://ikanakama.ink/events/22475",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-12-23",time:"21:00",name:"ちあっぷる杯ｰコスト10800",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-12-23 20:15",url:"https://ikanakama.ink/events/22873",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-24",time:"21:00",name:"クリスマス記念タイマン杯",format:"1vs1",rule:"ガチヤグラ",cost:"",offline:false,deadline:"2026-12-24 20:55",url:"https://ikanakama.ink/events/22693",src:"イカナカマ",tags:["タイマン"],added:"2026-11-22"},
+        {date:"2026-12-24",time:"21:00",name:"第10回2wins杯（仮）",format:"2vs2",rule:"",cost:"",offline:false,deadline:"2026-12-24 20:00",url:"https://ikanakama.ink/events/22783",src:"イカナカマ",tags:["男女限定","ブキ統一"],added:"2026-11-22"},
+        {date:"2026-12-25",time:"21:00",name:"第2回りちっぷる杯",format:"2vs2",rule:"ガチヤグラ",cost:"無制限",offline:false,deadline:"2026-12-25 20:15",url:"https://ikanakama.ink/events/22814",src:"イカナカマ",tags:[],added:"2026-11-22"},
+        {date:"2026-12-26",time:"13:00",name:"Salmon Party！mini #2",format:"",rule:"サーモンラン",cost:"",offline:true,deadline:"2026-12-25 12:00",url:"https://ikanakama.ink/events/22480",src:"イカナカマ",tags:["サーモンラン","オフライン"],added:"2026-11-22"},
+        {date:"2026-12-26",time:"21:00",name:"EMBLEMS-HOPES- #5",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"コスト10500以下",offline:false,deadline:"2026-12-26 20:30",url:"https://ikanakama.ink/events/22869",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-26",time:"21:00",name:"＜予告＞アサリップル杯 ダブルイカップル メリクリ！",format:"4vs4",rule:"ガチアサリ",cost:"",offline:false,deadline:"2026-12-25 21:00",url:"https://ikanakama.ink/events/22622",src:"イカナカマ",tags:["男女限定"],added:"2026-11-22"},
+        {date:"2026-12-26",time:"22:00",name:"星屑ロンリネス杯 #5",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-26 21:50",url:"https://ikanakama.ink/events/22756",src:"イカナカマ",tags:["パワー帯指定"],added:"2026-11-22"},
+        {date:"2026-12-27",time:"10:00",name:"SplashGo! #14.5 in OSAKA",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:true,deadline:"2026-12-20 22:00",url:"https://ikanakama.ink/events/22493",src:"イカナカマ",tags:["オフライン","ナワバリ"],added:"2026-11-22"},
+        {date:"2026-12-27",time:"22:00",name:"ちゃんうめ杯vol.4",format:"",rule:"ガチエリア",cost:"コスト9700以下",offline:false,deadline:"2026-12-27 00:00",url:"https://ikanakama.ink/events/22882",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"},
+        {date:"2026-12-27",time:"22:00",name:"クレイジーカップル杯",format:"2vs2",rule:"ガチヤグラ",cost:"コスト5500以下",offline:false,deadline:"2026-12-27 05:00",url:"https://ikanakama.ink/events/22608",src:"イカナカマ",tags:["コスト制"],added:"2026-11-22"}
       ];
 
       var RULE_FILTERS = ["ガチエリア", "ガチヤグラ", "ガチホコ", "ガチアサリ", "ナワバリ", "サーモンラン"];
@@ -406,7 +430,7 @@
       var DOW_JA = ["日", "月", "火", "水", "木", "金", "土"];
       var DOW_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-      var state = { q: "", rules: {}, tags: {}, openOnly: false, showPast: false, sort: "date" };
+      var state = { q: "", rules: {}, tags: {}, openOnly: false, newOnly: false, date: "", showPast: false, sort: "date" };
 
       function evDateTime(ev) { return new Date(ev.date + "T" + (ev.time || "23:59") + ":00"); }
       function evDeadline(ev) {
@@ -456,6 +480,14 @@
       }
       // 開催日が閲覧者のローカル日付で今日より前なら「終了分」。当日分は時刻を過ぎてもその日いっぱい表示対象
       function isPast(ev) { return ev.date < todayStrLocal(); }
+      // 登録日（added）と閲覧者の今日との差が0日または1日なら「新着」
+      function isNew(ev) {
+        if (!ev.added) return false;
+        var a = new Date(ev.added + "T00:00:00");
+        var t = new Date(todayStrLocal() + "T00:00:00");
+        var diff = Math.round((t - a) / 86400000);
+        return diff === 0 || diff === 1;
+      }
       function scopeEvents() {
         return EVENTS.filter(function (ev) { return state.showPast || !isPast(ev); });
       }
@@ -537,6 +569,16 @@
         });
         tc.appendChild(ob);
 
+        var nb = document.createElement("button");
+        nb.type = "button"; nb.className = "fchip"; nb.setAttribute("aria-pressed", "false");
+        nb.textContent = "新着のみ";
+        nb.addEventListener("click", function () {
+          state.newOnly = !state.newOnly;
+          nb.setAttribute("aria-pressed", state.newOnly ? "true" : "false");
+          render();
+        });
+        tc.appendChild(nb);
+
         var vc = document.getElementById("viewChips");
         var pb = document.createElement("button");
         pb.type = "button"; pb.className = "fchip"; pb.id = "pastChip"; pb.setAttribute("aria-pressed", "false");
@@ -563,6 +605,8 @@
           var dl = evDeadline(ev);
           if (dl && dl < now) return false;
         }
+        if (state.newOnly && !isNew(ev)) return false;
+        if (state.date && ev.date !== state.date) return false;
         return true;
       }
 
@@ -584,11 +628,11 @@
 
         document.getElementById("hitCount").textContent = list.length;
         var active = state.q || Object.keys(state.rules).some(function (k) { return state.rules[k]; }) ||
-                     Object.keys(state.tags).some(function (k) { return state.tags[k]; }) || state.openOnly || state.showPast;
+                     Object.keys(state.tags).some(function (k) { return state.tags[k]; }) || state.openOnly || state.newOnly || state.date || state.showPast;
         document.getElementById("clearBtn").hidden = !active;
         var selN = Object.keys(state.rules).filter(function (k) { return state.rules[k]; }).length +
                    Object.keys(state.tags).filter(function (k) { return state.tags[k]; }).length +
-                   (state.openOnly ? 1 : 0) + (state.showPast ? 1 : 0);
+                   (state.openOnly ? 1 : 0) + (state.newOnly ? 1 : 0) + (state.date ? 1 : 0) + (state.showPast ? 1 : 0);
         var selEl = document.getElementById("selCount");
         selEl.textContent = selN;
         selEl.hidden = selN === 0;
@@ -661,6 +705,12 @@
 
         var body = document.createElement("div");
         var h3 = document.createElement("h3");
+        if (isNew(ev)) {
+          var badge = document.createElement("span");
+          badge.className = "new-badge";
+          badge.textContent = "New";
+          h3.appendChild(badge);
+        }
         var a = document.createElement("a");
         a.href = safeUrl(ev.url);
         a.target = "_blank";
@@ -716,9 +766,24 @@
 
       document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value.trim(); render(); });
       document.getElementById("sort").addEventListener("change", function (e) { state.sort = e.target.value; render(); });
+      var datePickEl = document.getElementById("datePick");
+      var dateClearEl = document.getElementById("dateClear");
+      datePickEl.addEventListener("change", function (e) {
+        state.date = e.target.value;
+        dateClearEl.hidden = !state.date;
+        render();
+      });
+      dateClearEl.addEventListener("click", function () {
+        state.date = "";
+        datePickEl.value = "";
+        dateClearEl.hidden = true;
+        render();
+      });
       document.getElementById("clearBtn").addEventListener("click", function () {
-        state.q = ""; state.rules = {}; state.tags = {}; state.openOnly = false; state.showPast = false;
+        state.q = ""; state.rules = {}; state.tags = {}; state.openOnly = false; state.newOnly = false; state.date = ""; state.showPast = false;
         document.getElementById("q").value = "";
+        datePickEl.value = "";
+        dateClearEl.hidden = true;
         document.querySelectorAll(".fchip").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
         render();
       });
