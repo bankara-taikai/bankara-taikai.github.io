@@ -204,7 +204,45 @@
       }
       .empty[hidden] { display: none; }
 
-      footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12px; }
+      /* ---------- contact ---------- */
+      .contact {
+        margin-top: 44px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 6px solid var(--accent);
+        border-radius: var(--radius);
+        padding: 20px 18px 18px;
+      }
+      .contact h2 {
+        margin: 0 0 6px;
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1.4;
+        letter-spacing: .02em;
+      }
+      .contact p {
+        margin: 0 0 14px;
+        color: var(--ink-2);
+        font-size: 13.5px;
+        line-height: 1.6;
+      }
+      .contact-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 10px 18px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-size: 14px;
+        font-weight: 900;
+        text-decoration: none;
+        border-radius: 8px;
+        border: 1px solid var(--accent);
+      }
+      .contact-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+      footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12px; }
       footer p { margin: 0 0 4px; }
 
       @media (max-width: 480px) {
@@ -261,6 +299,12 @@
       <div class="empty" id="emptyState" hidden>
         条件に合う大会がありません。<br />タグを外すか、検索ワードを変えてみてください。
       </div>
+
+      <section class="contact" aria-label="掲載依頼・お問い合わせ">
+        <h2>掲載依頼・ご要望はこちら</h2>
+        <p>大会の掲載依頼と、データベースへのご要望・改善案を受け付けています。掲載は無料です。</p>
+        <a class="contact-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdnS6rTgIehFbk-j9hQWC4kZMrz5kOAyuLUHQMV5f-_hp0vAA/viewform" target="_blank" rel="noopener">掲載依頼・ご要望はこちら</a>
+      </section>
 
       <footer>
         <p>掲載データはバンカラ大会通信が収集・確認したものです（2026年11月24日時点）。締切や内容は変更される場合があるため、参加前に各大会の詳細ページで最新情報を確認してください。</p>
