@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>大会データベース</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
+
+      :root {
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --surface-2: #f0f0ee;
+        --ink: #141414;
+        --ink-2: #4c4c48;
+        --ink-3: #8a8a84;
+        --line: #e2e2de;
+        --accent: #f5c400;
+        --accent-ink: #141414;
+        --accent-soft: #fdf3c4;
+        --teal: #0e7c6b;
+        --teal-soft: #dcf2ec;
+        --chip-bg: #26262a;
+        --chip-ink: #f4f4f2;
+        --danger: #b3372e;
+        --radius: 10px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0a0a0a;
+          --surface: #141414;
+          --surface-2: #1d1d1d;
+          --ink: #f5f5f2;
+          --ink-2: #b9b9b2;
+          --ink-3: #7d7d76;
+          --line: #2a2a2a;
+          --accent: #ffd400;
+          --accent-ink: #0a0a0a;
+          --accent-soft: #2e2803;
+          --teal: #2dd4bf;
+          --teal-soft: #0d2b27;
+          --chip-bg: #2b2f36;
+          --chip-ink: #eef0f2;
+          --danger: #ff8a80;
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        font-size: 15px;
+        line-height: 1.55;
+      }
+      a { color: inherit; }
+      .num { font-family: "Archivo", "Zen Kaku Gothic New", sans-serif; font-variant-numeric: tabular-nums; }
+
+      .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px 64px; }
+
+      /* ---------- lead ---------- */
+      .lead { padding: 22px 0 4px; border-left: 6px solid var(--accent); padding-left: 14px; margin-top: 18px; }
+      .lead h1 { font-size: 22px; font-weight: 900; margin: 0 0 4px; letter-spacing: .02em; }
+      .lead p { margin: 0; color: var(--ink-2); font-size: 13.5px; }
+      .lead .period { font-weight: 700; color: var(--ink); }
+
+      /* ---------- controls ---------- */
+      .controls {
+        position: sticky; top: 0; z-index: 20;
+        background: var(--bg);
+        padding: 14px 0 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .search-row { display: flex; gap: 8px; }
+      .search-row input[type="search"] {
+        flex: 1; min-width: 0;
+        padding: 9px 12px;
+        font: inherit; font-size: 15px;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+      .search-row select {
+        font: inherit; font-size: 13.5px; font-weight: 700;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 0 8px;
+        max-width: 42%;
+      }
+      .filters { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .28s ease; }
+      .filters > .filters-inner { overflow: hidden; min-height: 0; }
+      .controls.collapsed .filters { grid-template-rows: 0fr; }
+      @media (prefers-reduced-motion: reduce) { .filters { transition: none; } }
+      .fgroup { margin-top: 10px; }
+      .fgroup .flabel {
+        font-size: 11.5px; font-weight: 900; letter-spacing: .08em;
+        color: var(--ink-3); margin-bottom: 5px;
+      }
+      .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+      .fchip {
+        appearance: none; cursor: pointer;
+        min-height: 36px;
+        padding: 6px 13px;
+        font: inherit; font-size: 13px; font-weight: 700;
+        color: var(--ink-2);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+      }
+      .fchip .cnt { font-size: 11px; color: var(--ink-3); margin-left: 4px; font-weight: 500; }
+      .fchip[aria-pressed="true"] {
+        background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+      }
+      .fchip[aria-pressed="true"] .cnt { color: var(--accent-ink); opacity: .65; }
+      .fchip.teal[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: #fff; }
+      .fchip.teal[aria-pressed="true"] .cnt { color: #fff; }
+      .status-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+      .result-count { font-size: 13px; color: var(--ink-2); }
+      .result-count strong { font-size: 17px; color: var(--ink); }
+      .clear-btn {
+        appearance: none; cursor: pointer;
+        min-height: 36px; padding: 6px 12px;
+        font: inherit; font-size: 12.5px; font-weight: 700;
+        color: var(--ink-2);
+        background: transparent; border: 1px solid var(--line); border-radius: 8px;
+      }
+      .clear-btn[hidden] { display: none; }
+      .status-actions { display: flex; align-items: center; gap: 8px; }
+      .toggle-btn {
+        appearance: none; cursor: pointer;
+        min-height: 36px; padding: 6px 12px;
+        font: inherit; font-size: 12.5px; font-weight: 700;
+        color: var(--ink-2);
+        background: transparent; border: 1px solid var(--line); border-radius: 8px;
+        display: inline-flex; align-items: center; gap: 6px;
+      }
+      .toggle-btn .chev { font-size: 10px; line-height: 1; transition: transform .2s ease; }
+      .controls.collapsed .toggle-btn .chev { transform: rotate(180deg); }
+      .toggle-btn .sel {
+        font-size: 11px; font-weight: 900;
+        background: var(--accent); color: var(--accent-ink);
+        border-radius: 999px; padding: 1px 7px;
+      }
+      .toggle-btn .sel[hidden] { display: none; }
+
+      /* ---------- day groups ---------- */
+      .day { margin-top: 30px; }
+      .day-head { display: flex; align-items: baseline; gap: 12px; border-left: 6px solid var(--accent); padding-left: 12px; }
+      .day-head .dnum { font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -.01em; }
+      .day-head .dmeta { display: flex; flex-direction: row; align-items: baseline; gap: 9px; white-space: nowrap; }
+      .day-head .dyear { font-size: 13px; font-weight: 700; color: var(--ink-3); letter-spacing: .06em; }
+      .day-head .ddow { font-size: 15px; font-weight: 900; }
+      .day-head .drel {
+        margin-left: auto; align-self: center;
+        font-size: 12px; font-weight: 900;
+        background: var(--accent); color: var(--accent-ink);
+        border-radius: 999px; padding: 4px 11px;
+      }
+      .day-head .drel.soon { background: var(--teal); color: #fff; }
+
+      .events { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+      .event {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 13px 14px;
+        display: grid;
+        grid-template-columns: 58px 1fr;
+        column-gap: 12px;
+      }
+      .event .time { font-size: 19px; font-weight: 800; line-height: 1.25; }
+      .event .time .tbd { font-size: 12px; font-weight: 700; color: var(--ink-3); font-family: "Zen Kaku Gothic New", sans-serif; }
+      .event h3 { margin: 1px 0 0; font-size: 16.5px; font-weight: 900; line-height: 1.4; }
+      .event h3 a { text-decoration: none; }
+      .event h3 a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+      .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+      .tag {
+        font-size: 11.5px; font-weight: 700;
+        background: var(--chip-bg); color: var(--chip-ink);
+        border-radius: 999px; padding: 3px 10px;
+        display: inline-flex; align-items: center; min-height: 22px;
+      }
+      .tag.offline { background: var(--accent); color: var(--accent-ink); }
+      .meta { margin-top: 8px; font-size: 12.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+      .meta .dl.open { color: var(--teal); font-weight: 700; }
+      .meta .dl.closed { color: var(--danger); font-weight: 700; }
+      .meta .src a { color: var(--ink-2); text-underline-offset: 3px; }
+      .event.past { opacity: .55; }
+
+      .empty {
+        margin-top: 40px; text-align: center; color: var(--ink-2);
+        border: 1px dashed var(--line); border-radius: var(--radius);
+        padding: 34px 16px; font-size: 14px;
+      }
+      .empty[hidden] { display: none; }
+
+      footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12px; }
+      footer p { margin: 0 0 4px; }
+
+      @media (max-width: 480px) {
+        .day-head .dnum { font-size: 34px; }
+        .event { grid-template-columns: 50px 1fr; padding: 12px; }
+        .event .time { font-size: 17px; }
+        .event h3 { font-size: 15.5px; }
+        .search-row { flex-wrap: wrap; }
+        .search-row select { max-width: none; flex: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="lead">
+        <h1>Splatoon3 コミュニティ大会データベース</h1>
+        <p><span class="period num" id="periodText">2026.11.23（月 / Mon）〜 12.27（日 / Sun）</span> 開催分・全<span class="num" id="totalCount">80</span>件。タグやルールで絞り込んで、気になる大会の詳細ページへ飛べます。</p>
+      </div>
+
+      <div class="controls" role="search">
+        <div class="search-row">
+          <input type="search" id="q" placeholder="大会名で検索（例：コスト、杯、フェス）" aria-label="大会名で検索" />
+          <select id="sort" aria-label="並び替え">
+            <option value="date">開催日時順</option>
+            <option value="deadline">締切が近い順</option>
+          </select>
+        </div>
+        <div class="filters" id="filters">
+          <div class="filters-inner">
+            <div class="fgroup">
+              <div class="flabel">ルール</div>
+              <div class="chips" id="ruleChips"></div>
+            </div>
+            <div class="fgroup">
+              <div class="flabel">形式・条件</div>
+              <div class="chips" id="tagChips"></div>
+            </div>
+            <div class="fgroup">
+              <div class="flabel">表示</div>
+              <div class="chips" id="viewChips"></div>
+            </div>
+          </div>
+        </div>
+        <div class="status-row">
+          <span class="result-count"><strong class="num" id="hitCount">80</strong> 件ヒット</span>
+          <span class="status-actions">
+            <button type="button" class="toggle-btn" id="filterToggle" aria-expanded="true" aria-controls="filters">絞り込み条件<span class="sel num" id="selCount" hidden></span><span class="chev" aria-hidden="true">▲</span></button>
+            <button type="button" class="clear-btn" id="clearBtn" hidden>絞り込みをクリア</button>
+          </span>
+        </div>
+      </div>
+
+      <main id="list" aria-live="polite"></main>
+      <div class="empty" id="emptyState" hidden>
+        条件に合う大会がありません。<br />タグを外すか、検索ワードを変えてみてください。
+      </div>
+
+      <footer>
+        <p>掲載データはバンカラ大会通信が収集・確認したものです（2026年11月24日時点）。締切や内容は変更される場合があるため、参加前に各大会の詳細ページで最新情報を確認してください。</p>
+        <p>出典：イカナカマ／各大会のInstagram告知</p>
+      </footer>
+    </div>
+
+    <script>
+      var EVENTS = [
+        {date:"2026-11-23",time:"20:00",name:"ナワバリフェス2026秋 敗者復活戦",format:"4vs4",rule:"ナワバリ",cost:"無制限",offline:false,deadline:"2026-11-23 19:45",url:"https://ikanakama.ink/events/22446",src:"イカナカマ",tags:["ナワバリ"]},
+        {date:"2026-11-23",time:"21:00",name:"第四回ひめまる杯",format:"4vs4",rule:"",cost:"",offline:false,deadline:"2026-11-23 20:45",url:"https://ikanakama.ink/events/22923",src:"イカナカマ",tags:[]},
+        {date:"2026-11-23",time:"22:00",name:"TWI cup 10300",format:"4vs4",rule:"",cost:"コスト10300以下",offline:false,deadline:"2026-11-22 21:00",url:"https://ikanakama.ink/events/22768",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-11-24",time:"21:00",name:"mini＊2wins杯35",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-24 20:45",url:"https://ikanakama.ink/events/22884",src:"イカナカマ",tags:["イカップル","ブキ統一"]},
+        {date:"2026-11-24",time:"22:00",name:"ごにょ杯 コスト制エリア10800",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-11-24 21:45",url:"https://ikanakama.ink/events/22872",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-11-25",time:"23:00",name:"えんじょいかっぷ 第18回",format:"4vs4",rule:"",cost:"",offline:false,deadline:"2026-11-24 22:30",url:"https://ikanakama.ink/events/22744",src:"イカナカマ",tags:[]},
+        {date:"2026-11-27",time:"21:00",name:"Canvas Cup 14th.",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-27 20:45",url:"https://ikanakama.ink/events/22759",src:"イカナカマ",tags:[]},
+        {date:"2026-11-27",time:"22:00",name:"#21 れんれん杯 コスト10000",format:"4vs4",rule:"",cost:"コスト10000以下",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22680",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-11-27",time:"22:00",name:"BLUEFIN TUNA CUP ep02",format:"4vs4",rule:"ガチヤグラ",cost:"コスト8800以下",offline:false,deadline:"2026-11-24 22:00",url:"https://ikanakama.ink/events/22644",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-11-27",time:"22:00",name:"Sparkle Cup the 4th",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22816",src:"イカナカマ",tags:[]},
+        {date:"2026-11-27",time:"22:00",name:"第1回ちゃんうめ杯でゅおっ！",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-27 00:00",url:"https://ikanakama.ink/events/22724",src:"イカナカマ",tags:[]},
+        {date:"2026-11-28",time:"17:00",name:"第１回ゆずっと黄金杯",format:"",rule:"サーモンラン",cost:"",offline:false,deadline:"2026-11-28 16:55",url:"https://ikanakama.ink/events/22922",src:"イカナカマ",tags:["サーモンラン"]},
+        {date:"2026-11-28",time:"19:00",name:"オプ100人記念ペア杯",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-28 18:45",url:"https://ikanakama.ink/events/22919",src:"イカナカマ",tags:["ペア"]},
+        {date:"2026-11-28",time:"20:00",name:"ナワバリフェス2026秋 王者決定戦",format:"4vs4",rule:"ナワバリ",cost:"",offline:false,deadline:"",url:"https://ikanakama.ink/events/22447",src:"イカナカマ",tags:["ナワバリ"]},
+        {date:"2026-11-28",time:"20:30",name:"GranDreamCUP",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-15 00:00",url:"https://ikanakama.ink/events/22818",src:"イカナカマ",tags:[]},
+        {date:"2026-11-28",time:"21:00",name:"とらきん杯",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-28 12:00",url:"https://ikanakama.ink/events/22885",src:"イカナカマ",tags:[]},
+        {date:"2026-11-28",time:"22:00",name:"さざなみ杯",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-27 21:00",url:"https://ikanakama.ink/events/22619",src:"イカナカマ",tags:["女性限定"]},
+        {date:"2026-11-28",time:"22:00",name:"星屑ロンリネス杯 #3",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-28 21:50",url:"https://ikanakama.ink/events/22754",src:"イカナカマ",tags:[]},
+        {date:"2026-11-28",time:"22:00",name:"第8回+α杯",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-28 19:00",url:"https://ikanakama.ink/events/22639",src:"イカナカマ",tags:[]},
+        {date:"2026-11-29",time:"10:30",name:"しらおかGO! #4",format:"",rule:"",cost:"",offline:true,deadline:"",url:"https://www.instagram.com/p/Df9lPKVvGRu/",src:"Instagram",tags:["オフライン"]},
+        {date:"2026-11-29",time:"21:00",name:"IGL杯 5人制大会",format:"5人制",rule:"",cost:"",offline:false,deadline:"2026-11-29 20:30",url:"https://ikanakama.ink/events/22664",src:"イカナカマ",tags:[]},
+        {date:"2026-11-29",time:"21:00",name:"あいざっくイカップル",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-11-29 20:45",url:"https://ikanakama.ink/events/22484",src:"イカナカマ",tags:["イカップル"]},
+        {date:"2026-11-29",time:"21:00",name:"あそびばVSリスナー",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"",url:"https://www.instagram.com/p/DgD1edjSawK/",src:"Instagram",tags:["ナワバリ"]},
+        {date:"2026-11-29",time:"21:00",name:"第16回 みもペア鮭杯",format:"2vs2",rule:"サーモンラン",cost:"",offline:false,deadline:"2026-11-29 20:45",url:"https://ikanakama.ink/events/22786",src:"イカナカマ",tags:["ペア","サーモンラン"]},
+        {date:"2026-11-29",time:"21:00",name:"第三回あるっぷる杯",format:"",rule:"",cost:"",offline:false,deadline:"2026-11-28 23:59",url:"https://ikanakama.ink/events/22793",src:"イカナカマ",tags:[]},
+        {date:"2026-11-30",time:"22:00",name:"ごにょ杯 ナワバリ #20",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-11-30 21:45",url:"https://ikanakama.ink/events/22886",src:"イカナカマ",tags:["ナワバリ"]},
+        {date:"2026-12-04",time:"21:00",name:"あにゃむす杯",format:"4vs4",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-12-04 21:00",url:"https://ikanakama.ink/events/22736",src:"イカナカマ",tags:["ナワバリ"]},
+        {date:"2026-12-05",time:"12:00",name:"AREA CUP Live!",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:true,deadline:"2026-10-31 23:59",url:"https://ikanakama.ink/events/20906",src:"イカナカマ",tags:["オフライン"]},
+        {date:"2026-12-05",time:"21:00",name:"第2回カーボン必須杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-05 20:30",url:"https://ikanakama.ink/events/21928",src:"イカナカマ",tags:["ブキ統一"]},
+        {date:"2026-12-05",time:"22:00",name:"Blitz Cup -電光石火- 老若男女ガチアサリ",format:"4vs4",rule:"ガチアサリ",cost:"コスト8200未満／9600未満／11000未満（部門別）",offline:false,deadline:"2026-12-05 21:00",url:"https://ikanakama.ink/events/22620",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-05",time:"22:00",name:"CORE RANGE CUP",format:"4vs4",rule:"ガチエリア",cost:"コスト8400以下",offline:false,deadline:"2026-12-05 00:00",url:"https://ikanakama.ink/events/22772",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-05",time:"22:00",name:"HaruiLobby -Vol.5-",format:"4vs4",rule:"ガチエリア",cost:"コスト9200以下",offline:false,deadline:"2026-12-05 18:00",url:"https://ikanakama.ink/events/22800",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-05",time:"22:00",name:"ペアマッチングてり杯",format:"2vs2 / 4vs4",rule:"ガチエリア",cost:"ペアコスト5250以上5500以下",offline:false,deadline:"2026-12-05 22:00",url:"https://ikanakama.ink/events/22473",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-05",time:"22:00",name:"第1回にあのっち杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-05 21:30",url:"https://ikanakama.ink/events/22827",src:"イカナカマ",tags:["ブキ統一"]},
+        {date:"2026-12-05",time:"22:00",name:"第2回じみー生誕祭",format:"4vs4",rule:"ガチエリア",cost:"コスト11800以下",offline:false,deadline:"2026-12-05 21:45",url:"https://ikanakama.ink/events/22835",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-06",time:"21:00",name:"うれっしーイカップル杯",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-06 20:50",url:"https://ikanakama.ink/events/22813",src:"イカナカマ",tags:["男女限定"]},
+        {date:"2026-12-06",time:"21:00",name:"亜種武器杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-06 20:30",url:"https://ikanakama.ink/events/22765",src:"イカナカマ",tags:["ブキ統一"]},
+        {date:"2026-12-07",time:"22:00",name:"てり杯 24-27部門",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-07 21:00",url:"https://ikanakama.ink/events/22757",src:"イカナカマ",tags:["XP帯指定"]},
+        {date:"2026-12-11",time:"21:00",name:"オタク杯3.5 文化祭～Revenge～",format:"4vs4",rule:"ナワバリ",cost:"コスト9200以下",offline:false,deadline:"2026-12-06 06:00",url:"https://ikanakama.ink/events/22823",src:"イカナカマ",tags:["コスト制","ナワバリ","推し限定"]},
+        {date:"2026-12-11",time:"21:00",name:"第二回 ドリンクごくごく杯 ～クリスマスパーティーナイト～",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-11 20:30",url:"https://ikanakama.ink/events/22836",src:"イカナカマ",tags:["ブキ統一"]},
+        {date:"2026-12-11",time:"22:00",name:"第2回 Symphony Cup",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-12-10 23:59",url:"https://ikanakama.ink/events/22805",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-12",time:"21:00",name:"星屑ロンリネス杯 #4",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-12 20:50",url:"https://ikanakama.ink/events/22755",src:"イカナカマ",tags:["パワー帯指定"]},
+        {date:"2026-12-12",time:"21:00",name:"第1回 思い立ったが吉日！杯 ~武器ランダム~",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-12 20:45",url:"https://ikanakama.ink/events/22775",src:"イカナカマ",tags:["ブキランダム"]},
+        {date:"2026-12-12",time:"21:00",name:"第1回武器統一わさっぷる！",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-12 20:50",url:"https://ikanakama.ink/events/22425",src:"イカナカマ",tags:["ブキ統一"]},
+        {date:"2026-12-12",time:"21:00",name:"第六回龍鱗杯",format:"4vs4",rule:"ガチヤグラ",cost:"コスト10000以下",offline:false,deadline:"2026-12-12 20:00",url:"https://ikanakama.ink/events/22852",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-12",time:"21:30",name:"ごにょ杯 ナワバリ EXTRA",format:"",rule:"ナワバリ",cost:"",offline:false,deadline:"2026-12-12 21:00",url:"https://ikanakama.ink/events/22815",src:"イカナカマ",tags:["ナワバリ"]},
+        {date:"2026-12-12",time:"22:00",name:"しるべ杯9600",format:"4vs4",rule:"ガチエリア",cost:"コスト9600以下",offline:false,deadline:"2026-12-11 22:00",url:"https://ikanakama.ink/events/22769",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-12",time:"22:00",name:"はぜカップ",format:"4vs4",rule:"ナワバリ",cost:"コスト10800以下",offline:false,deadline:"2026-12-11 22:00",url:"https://ikanakama.ink/events/22826",src:"イカナカマ",tags:["コスト制","ナワバリ"]},
+        {date:"2026-12-12",time:"22:00",name:"編成固定杯",format:"",rule:"",cost:"無制限",offline:false,deadline:"2026-12-10 22:00",url:"https://ikanakama.ink/events/22821",src:"イカナカマ",tags:["ブキ統一"]},
+        {date:"2026-12-12",time:"22:00",name:"🌱第9回わかあつ杯 ヤグラ10000 更新時期で軽減あり🌱",format:"4vs4",rule:"ガチヤグラ",cost:"コスト10000以下",offline:false,deadline:"2026-12-12 00:00",url:"https://ikanakama.ink/events/22927",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-13",time:"14:30",name:"いかてらす #4 ナワバリバトル",format:"4vs4",rule:"ナワバリ",cost:"",offline:true,deadline:"2026-12-10 23:59",url:"https://ikanakama.ink/events/22720",src:"イカナカマ",tags:["オフライン","ナワバリ"]},
+        {date:"2026-12-13",time:"21:00",name:"EMBLEMS #16",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-13 20:30",url:"https://ikanakama.ink/events/22866",src:"イカナカマ",tags:[]},
+        {date:"2026-12-13",time:"21:00",name:"第3回 つなめろっぷる",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-13 20:45",url:"https://ikanakama.ink/events/22778",src:"イカナカマ",tags:[]},
+        {date:"2026-12-13",time:"21:00",name:"＜予告＞ガチアサリの日杯 コストなしスイスドロー",format:"",rule:"ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-13 21:00",url:"https://ikanakama.ink/events/22621",src:"イカナカマ",tags:[]},
+        {date:"2026-12-13",time:"",name:"寿都町クリスマス大会",format:"",rule:"",cost:"",offline:true,deadline:"2026-11-27",url:"https://www.instagram.com/p/Df9LWnEmUFN/",src:"Instagram",tags:["オフライン"]},
+        {date:"2026-12-18",time:"21:00",name:"第12回らてっぷる杯 無制限",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-18 20:00",url:"https://ikanakama.ink/events/22865",src:"イカナカマ",tags:[]},
+        {date:"2026-12-18",time:"21:00",name:"🌱第2回たにもとイカップル杯🌱",format:"2vs2",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-18 20:55",url:"https://ikanakama.ink/events/22714",src:"イカナカマ",tags:[]},
+        {date:"2026-12-19",time:"21:00",name:"EMBLEMS-HOPES- #4",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"コスト10500以下",offline:false,deadline:"2026-12-19 20:30",url:"https://ikanakama.ink/events/22868",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-19",time:"21:00",name:"Queens cup",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-18 23:59",url:"https://ikanakama.ink/events/22832",src:"イカナカマ",tags:["女性限定"]},
+        {date:"2026-12-19",time:"21:00",name:"「冥」「冥」ナモCUP",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-18 23:45",url:"https://ikanakama.ink/events/22797",src:"イカナカマ",tags:["ブキ統一"]},
+        {date:"2026-12-19",time:"21:00",name:"第4回 まなみ杯",format:"4vs4",rule:"",cost:"コスト10900以下",offline:false,deadline:"2026-12-19 20:30",url:"https://ikanakama.ink/events/22314",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-19",time:"22:00",name:"ちゃんうめ杯vol.3",format:"",rule:"ガチエリア",cost:"コスト9100以下",offline:false,deadline:"2026-12-18 00:00",url:"https://ikanakama.ink/events/22881",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-19",time:"22:00",name:"コスト7800！さあみんなでバトル祭りだー！！",format:"3vs3",rule:"ガチヤグラ",cost:"コスト7800以下",offline:false,deadline:"2026-12-18 23:00",url:"https://ikanakama.ink/events/22862",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-19",time:"22:00",name:"第2回ニワトリ杯 7500",format:"4vs4",rule:"ガチエリア",cost:"コスト7500以下",offline:false,deadline:"2026-12-18 22:00",url:"https://ikanakama.ink/events/22748",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-20",time:"15:45",name:"ランダム武器エリア杯",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-20 15:30",url:"https://ikanakama.ink/events/22788",src:"イカナカマ",tags:["ブキランダム"]},
+        {date:"2026-12-20",time:"21:00",name:"EMBLEMS #17",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"無制限",offline:false,deadline:"2026-12-20 20:30",url:"https://ikanakama.ink/events/22867",src:"イカナカマ",tags:[]},
+        {date:"2026-12-20",time:"21:00",name:"クリスマスちあっぷる杯！！",format:"2vs2",rule:"ガチヤグラ",cost:"無制限",offline:false,deadline:"2026-12-20 20:15",url:"https://ikanakama.ink/events/22640",src:"イカナカマ",tags:["男女限定"]},
+        {date:"2026-12-20",time:"22:00",name:"冷笑杯",format:"4vs4",rule:"ガチエリア",cost:"コスト11000以下",offline:false,deadline:"2026-12-20 21:55",url:"https://ikanakama.ink/events/22924",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-21",time:"22:00",name:"第7回りるりる杯",format:"4vs4",rule:"ガチエリア",cost:"無制限",offline:false,deadline:"2026-12-21 21:45",url:"https://ikanakama.ink/events/22475",src:"イカナカマ",tags:[]},
+        {date:"2026-12-23",time:"21:00",name:"ちあっぷる杯ｰコスト10800",format:"4vs4",rule:"ガチエリア",cost:"コスト10800以下",offline:false,deadline:"2026-12-23 20:15",url:"https://ikanakama.ink/events/22873",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-24",time:"21:00",name:"クリスマス記念タイマン杯",format:"1vs1",rule:"ガチヤグラ",cost:"",offline:false,deadline:"2026-12-24 20:55",url:"https://ikanakama.ink/events/22693",src:"イカナカマ",tags:["タイマン"]},
+        {date:"2026-12-24",time:"21:00",name:"第10回2wins杯（仮）",format:"2vs2",rule:"",cost:"",offline:false,deadline:"2026-12-24 20:00",url:"https://ikanakama.ink/events/22783",src:"イカナカマ",tags:["男女限定","ブキ統一"]},
+        {date:"2026-12-25",time:"21:00",name:"第2回りちっぷる杯",format:"2vs2",rule:"ガチヤグラ",cost:"無制限",offline:false,deadline:"2026-12-25 20:15",url:"https://ikanakama.ink/events/22814",src:"イカナカマ",tags:[]},
+        {date:"2026-12-26",time:"13:00",name:"Salmon Party！mini #2",format:"",rule:"サーモンラン",cost:"",offline:true,deadline:"2026-12-25 12:00",url:"https://ikanakama.ink/events/22480",src:"イカナカマ",tags:["サーモンラン","オフライン"]},
+        {date:"2026-12-26",time:"21:00",name:"EMBLEMS-HOPES- #5",format:"4vs4",rule:"ナワバリ／ガチエリア／ガチヤグラ／ガチホコ／ガチアサリ",cost:"コスト10500以下",offline:false,deadline:"2026-12-26 20:30",url:"https://ikanakama.ink/events/22869",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-26",time:"21:00",name:"＜予告＞アサリップル杯 ダブルイカップル メリクリ！",format:"4vs4",rule:"ガチアサリ",cost:"",offline:false,deadline:"2026-12-25 21:00",url:"https://ikanakama.ink/events/22622",src:"イカナカマ",tags:["男女限定"]},
+        {date:"2026-12-26",time:"22:00",name:"星屑ロンリネス杯 #5",format:"4vs4",rule:"ガチエリア",cost:"",offline:false,deadline:"2026-12-26 21:50",url:"https://ikanakama.ink/events/22756",src:"イカナカマ",tags:["パワー帯指定"]},
+        {date:"2026-12-27",time:"10:00",name:"SplashGo! #14.5 in OSAKA",format:"4vs4",rule:"ナワバリ",cost:"",offline:true,deadline:"2026-12-20 22:00",url:"https://ikanakama.ink/events/22493",src:"イカナカマ",tags:["オフライン","ナワバリ"]},
+        {date:"2026-12-27",time:"22:00",name:"ちゃんうめ杯vol.4",format:"",rule:"ガチエリア",cost:"コスト9700以下",offline:false,deadline:"2026-12-27 00:00",url:"https://ikanakama.ink/events/22882",src:"イカナカマ",tags:["コスト制"]},
+        {date:"2026-12-27",time:"22:00",name:"クレイジーカップル杯",format:"2vs2",rule:"ガチヤグラ",cost:"コスト5500以下",offline:false,deadline:"2026-12-27 05:00",url:"https://ikanakama.ink/events/22608",src:"イカナカマ",tags:["コスト制"]}
+      ];
+
+      var RULE_FILTERS = ["ガチエリア", "ガチヤグラ", "ガチホコ", "ガチアサリ", "ナワバリ", "サーモンラン"];
+      var TAG_FILTERS = ["コスト制", "無制限", "2vs2", "オフライン", "女性限定", "男女限定", "ブキ統一", "ブキランダム"];
+      var DOW_JA = ["日", "月", "火", "水", "木", "金", "土"];
+      var DOW_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      var state = { q: "", rules: {}, tags: {}, openOnly: false, showPast: false, sort: "date" };
+
+      function evDateTime(ev) { return new Date(ev.date + "T" + (ev.time || "23:59") + ":00"); }
+      function evDeadline(ev) {
+        if (!ev.deadline) return null;
+        var d = ev.deadline.length === 10 ? ev.deadline + " 23:59" : ev.deadline;
+        return new Date(d.replace(" ", "T") + ":00");
+      }
+      function tagSet(ev) {
+        var s = {};
+        (ev.tags || []).forEach(function (t) { s[t] = true; });
+        if (ev.cost === "無制限") s["無制限"] = true;
+        if (ev.cost && ev.cost.indexOf("コスト") === 0) s["コスト制"] = true;
+        if (ev.cost && ev.cost.indexOf("ペアコスト") === 0) s["コスト制"] = true;
+        if (ev.format && ev.format.indexOf("2vs2") !== -1) s["2vs2"] = true;
+        if (ev.offline) s["オフライン"] = true;
+        return s;
+      }
+      function ruleHas(ev, r) {
+        if (!ev.rule) return false;
+        return ev.rule.split("／").indexOf(r) !== -1;
+      }
+      function displayTags(ev) {
+        var out = [];
+        if (ev.format) out.push(ev.format);
+        if (ev.rule) out.push(ev.rule);
+        if (ev.cost) out.push(ev.cost);
+        (ev.tags || []).forEach(function (t) {
+          if (t === ev.rule) return;
+          if (t === "コスト制" && ev.cost) return;
+          if (t === "オフライン") return;
+          out.push(t);
+        });
+        return out;
+      }
+      function fmtDL(ev) {
+        if (!ev.deadline) return "";
+        var p = ev.deadline.split(" ");
+        var d = p[0].split("-");
+        var s = parseInt(d[1], 10) + "/" + parseInt(d[2], 10);
+        if (p[1]) s += " " + p[1];
+        return s;
+      }
+
+      function todayStrLocal() {
+        var n = new Date();
+        return n.getFullYear() + "-" + String(n.getMonth() + 1).padStart(2, "0") + "-" + String(n.getDate()).padStart(2, "0");
+      }
+      // 開催日が閲覧者のローカル日付で今日より前なら「終了分」。当日分は時刻を過ぎてもその日いっぱい表示対象
+      function isPast(ev) { return ev.date < todayStrLocal(); }
+      function scopeEvents() {
+        return EVENTS.filter(function (ev) { return state.showPast || !isPast(ev); });
+      }
+
+      function countFor(kind, val) {
+        return scopeEvents().filter(function (ev) {
+          return kind === "rule" ? ruleHas(ev, val) : !!tagSet(ev)[val];
+        }).length;
+      }
+
+      var ruleCountSpans = {}, tagCountSpans = {};
+      function updateChipCounts() {
+        RULE_FILTERS.forEach(function (r) { if (ruleCountSpans[r]) ruleCountSpans[r].textContent = countFor("rule", r); });
+        TAG_FILTERS.forEach(function (t) { if (tagCountSpans[t]) tagCountSpans[t].textContent = countFor("tag", t); });
+      }
+
+      function fmtPeriodDate(dateStr, withYear) {
+        var d = new Date(dateStr + "T00:00:00");
+        var s = (withYear ? d.getFullYear() + "." : "") + (d.getMonth() + 1) + "." + d.getDate();
+        return s + "（" + DOW_JA[d.getDay()] + " / " + DOW_EN[d.getDay()] + "）";
+      }
+      // リード文の期間表記と総件数を、表示対象（トグル状態）に合わせて更新する
+      function updateScope() {
+        var scope = scopeEvents();
+        var periodEl = document.getElementById("periodText");
+        if (scope.length) {
+          var first = scope[0].date, last = scope[0].date;
+          scope.forEach(function (ev) {
+            if (ev.date < first) first = ev.date;
+            if (ev.date > last) last = ev.date;
+          });
+          periodEl.textContent = fmtPeriodDate(first, true) + "〜 " + fmtPeriodDate(last, first.slice(0, 4) !== last.slice(0, 4));
+        } else {
+          periodEl.textContent = "表示対象の大会なし";
+        }
+        document.getElementById("totalCount").textContent = scope.length;
+        updateChipCounts();
+      }
+
+      function buildChips() {
+        var rc = document.getElementById("ruleChips");
+        RULE_FILTERS.forEach(function (r) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "fchip"; b.setAttribute("aria-pressed", "false");
+          b.innerHTML = "";
+          b.appendChild(document.createTextNode(r));
+          var c = document.createElement("span"); c.className = "cnt num"; c.textContent = countFor("rule", r);
+          b.appendChild(c);
+          b.addEventListener("click", function () {
+            state.rules[r] = !state.rules[r];
+            b.setAttribute("aria-pressed", state.rules[r] ? "true" : "false");
+            render();
+          });
+          ruleCountSpans[r] = c;
+          rc.appendChild(b);
+        });
+        var tc = document.getElementById("tagChips");
+        TAG_FILTERS.forEach(function (t) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "fchip"; b.setAttribute("aria-pressed", "false");
+          b.appendChild(document.createTextNode(t));
+          var c = document.createElement("span"); c.className = "cnt num"; c.textContent = countFor("tag", t);
+          b.appendChild(c);
+          b.addEventListener("click", function () {
+            state.tags[t] = !state.tags[t];
+            b.setAttribute("aria-pressed", state.tags[t] ? "true" : "false");
+            render();
+          });
+          tagCountSpans[t] = c;
+          tc.appendChild(b);
+        });
+        var ob = document.createElement("button");
+        ob.type = "button"; ob.className = "fchip teal"; ob.setAttribute("aria-pressed", "false");
+        ob.textContent = "エントリー受付中のみ";
+        ob.addEventListener("click", function () {
+          state.openOnly = !state.openOnly;
+          ob.setAttribute("aria-pressed", state.openOnly ? "true" : "false");
+          render();
+        });
+        tc.appendChild(ob);
+
+        var vc = document.getElementById("viewChips");
+        var pb = document.createElement("button");
+        pb.type = "button"; pb.className = "fchip"; pb.id = "pastChip"; pb.setAttribute("aria-pressed", "false");
+        pb.textContent = "終了した大会も表示する";
+        pb.addEventListener("click", function () {
+          state.showPast = !state.showPast;
+          pb.setAttribute("aria-pressed", state.showPast ? "true" : "false");
+          render();
+        });
+        vc.appendChild(pb);
+      }
+
+      function matches(ev, now) {
+        if (!state.showPast && isPast(ev)) return false;
+        if (state.q && ev.name.toLowerCase().indexOf(state.q.toLowerCase()) === -1) return false;
+        var rs = Object.keys(state.rules).filter(function (k) { return state.rules[k]; });
+        if (rs.length && !rs.some(function (r) { return ruleHas(ev, r); })) return false;
+        var ts = Object.keys(state.tags).filter(function (k) { return state.tags[k]; });
+        if (ts.length) {
+          var set = tagSet(ev);
+          for (var i = 0; i < ts.length; i++) if (!set[ts[i]]) return false;
+        }
+        if (state.openOnly) {
+          var dl = evDeadline(ev);
+          if (dl && dl < now) return false;
+        }
+        return true;
+      }
+
+      function render() {
+        var now = new Date();
+        updateScope();
+        var list = EVENTS.filter(function (ev) { return matches(ev, now); });
+        if (state.sort === "deadline") {
+          list.sort(function (a, b) {
+            var da = evDeadline(a), db = evDeadline(b);
+            if (da && db) return da - db;
+            if (da) return -1;
+            if (db) return 1;
+            return evDateTime(a) - evDateTime(b);
+          });
+        } else {
+          list.sort(function (a, b) { return evDateTime(a) - evDateTime(b); });
+        }
+
+        document.getElementById("hitCount").textContent = list.length;
+        var active = state.q || Object.keys(state.rules).some(function (k) { return state.rules[k]; }) ||
+                     Object.keys(state.tags).some(function (k) { return state.tags[k]; }) || state.openOnly || state.showPast;
+        document.getElementById("clearBtn").hidden = !active;
+        var selN = Object.keys(state.rules).filter(function (k) { return state.rules[k]; }).length +
+                   Object.keys(state.tags).filter(function (k) { return state.tags[k]; }).length +
+                   (state.openOnly ? 1 : 0) + (state.showPast ? 1 : 0);
+        var selEl = document.getElementById("selCount");
+        selEl.textContent = selN;
+        selEl.hidden = selN === 0;
+        document.getElementById("emptyState").hidden = list.length > 0;
+
+        var main = document.getElementById("list");
+        main.innerHTML = "";
+
+        var todayStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+        var tmr = new Date(now.getTime() + 86400000);
+        var tmrStr = tmr.getFullYear() + "-" + String(tmr.getMonth() + 1).padStart(2, "0") + "-" + String(tmr.getDate()).padStart(2, "0");
+
+        var groups = [], byDate = {};
+        list.forEach(function (ev) {
+          if (!byDate[ev.date]) { byDate[ev.date] = []; groups.push(ev.date); }
+          byDate[ev.date].push(ev);
+        });
+        if (state.sort === "deadline") {
+          // 締切順のときは日付見出しなしで1グループにまとめる
+          groups = [null];
+          byDate = { null: list };
+        }
+
+        groups.forEach(function (dateKey) {
+          var sec = document.createElement("section");
+          sec.className = "day";
+          if (dateKey) {
+            var d = new Date(dateKey + "T00:00:00");
+            var head = document.createElement("div");
+            head.className = "day-head";
+            var rel = "";
+            if (dateKey === todayStr) rel = '<span class="drel">今日</span>';
+            else if (dateKey === tmrStr) rel = '<span class="drel soon">明日</span>';
+            head.innerHTML =
+              '<span class="dnum num">' + (d.getMonth() + 1) + "." + d.getDate() + '</span>' +
+              '<span class="dmeta"><span class="dyear num">' + d.getFullYear() + '</span>' +
+              '<span class="ddow">（' + DOW_JA[d.getDay()] + ' / ' + DOW_EN[d.getDay()] + '）</span></span>' + rel;
+            sec.appendChild(head);
+          }
+          var ul = document.createElement("ul");
+          ul.className = "events";
+          byDate[dateKey].forEach(function (ev) { ul.appendChild(eventEl(ev, now)); });
+          sec.appendChild(ul);
+          main.appendChild(sec);
+        });
+      }
+
+      function eventEl(ev, now) {
+        var li = document.createElement("li");
+        li.className = "event" + (evDateTime(ev) < now ? " past" : "");
+        var dl = evDeadline(ev);
+        var dlHtml = "";
+        if (dl) {
+          var closed = dl < now;
+          dlHtml = '<span class="dl ' + (closed ? "closed" : "open") + '">締切 ' + fmtDL(ev) + (closed ? "（終了）" : "") + "</span>";
+        }
+        var tags = displayTags(ev).map(function (t) { return '<span class="tag">' + t + "</span>"; }).join("");
+        if (ev.offline) tags += '<span class="tag offline">オフライン</span>';
+        li.innerHTML =
+          '<div class="time num">' + (ev.time ? ev.time : '<span class="tbd">時刻未定</span>') + "</div>" +
+          "<div>" +
+            '<h3><a href="' + ev.url + '" target="_blank" rel="noopener">' + ev.name + "</a></h3>" +
+            (tags ? '<div class="tags">' + tags + "</div>" : "") +
+            '<div class="meta">' + dlHtml +
+              '<span class="src">詳細：<a href="' + ev.url + '" target="_blank" rel="noopener">' + ev.src + "</a></span>" +
+            "</div>" +
+          "</div>";
+        return li;
+      }
+
+      document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value.trim(); render(); });
+      document.getElementById("sort").addEventListener("change", function (e) { state.sort = e.target.value; render(); });
+      document.getElementById("clearBtn").addEventListener("click", function () {
+        state.q = ""; state.rules = {}; state.tags = {}; state.openOnly = false; state.showPast = false;
+        document.getElementById("q").value = "";
+        document.querySelectorAll(".fchip").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+        render();
+      });
+
+      // 絞り込みエリアの折りたたみ：スクロールで自動的に畳み、上部に戻ると開く。ボタンでも開閉できる
+      var controlsEl = document.querySelector(".controls");
+      var toggleBtn = document.getElementById("filterToggle");
+      var filtersOpen = true;
+      var autoCollapsed = false;
+      var manualHold = false;
+      function setFilters(open) {
+        filtersOpen = open;
+        controlsEl.classList.toggle("collapsed", !open);
+        toggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      }
+      toggleBtn.addEventListener("click", function () {
+        manualHold = true;
+        autoCollapsed = false;
+        setFilters(!filtersOpen);
+      });
+      var ticking = false;
+      window.addEventListener("scroll", function () {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(function () {
+          ticking = false;
+          var y = window.scrollY || window.pageYOffset;
+          if (y <= 40) {
+            manualHold = false;
+            if (!filtersOpen) { autoCollapsed = false; setFilters(true); }
+          } else if (y > 160 && filtersOpen && !manualHold) {
+            autoCollapsed = true;
+            setFilters(false);
+          }
+        });
+      }, { passive: true });
+
+      buildChips();
+      render();
+    </script>
+  </body>
+</html>
