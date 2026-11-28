@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>大会リザルトメーカー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f3f0; --surface:#ffffff; --surface2:#eceee8; --ink:#14161a; --muted:#6b7280; --line:#e2e4de;
+  --accent:#b8d900; --accent-ink:#1a2200; --btn:#14161a; --btn-ink:#fff;
+  --radius:18px;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#101216; --surface:#1a1d22; --surface2:#24272e; --ink:#f2f3f0; --muted:#9aa0a8; --line:#2e323a; --btn:#f2f3f0; --btn-ink:#14161a; }
+}
+*{box-sizing:border-box}
+html{ -webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;line-height:1.55}
+button,input,select,textarea{font:inherit}
+button,[role="button"],select,input:not([type=checkbox],[type=radio]){min-height:44px}
+.wrap{max-width:860px;margin:0 auto;padding:14px 14px 40px}
+.lead{margin:6px 2px 14px}
+.lead h1{font-family:"M PLUS Rounded 1c",sans-serif;font-weight:900;font-size:22px;line-height:1.25;margin:0;letter-spacing:.02em}
+.lead p{margin:6px 0 0;color:var(--muted);font-size:13.5px;line-height:1.6}
+.preview-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.08)}
+.canvas-wrap{border-radius:12px;overflow:hidden;background:#0b2a6b;line-height:0}
+canvas{width:100%;height:auto;display:block}
+.actions{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;margin-top:10px}
+.btn{border:0;border-radius:999px;padding:0 14px;font-weight:800;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;min-height:48px;white-space:nowrap}
+.btn-primary{background:var(--btn);color:var(--btn-ink)}
+.btn-primary:active{transform:scale(.98)}
+.btn-sub{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.btn-accent{background:var(--accent);color:var(--accent-ink)}
+.status{font-size:12.5px;color:var(--muted);min-height:20px;margin-top:8px;text-align:center}
+.status.ok{color:#3a7d00;font-weight:700}
+.section{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:12px}
+.section h2{font-family:"M PLUS Rounded 1c",sans-serif;font-size:15px;font-weight:900;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.section h2 .num{background:var(--ink);color:var(--bg);width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;font-size:12px;flex:none}
+.section .hint{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+label.field{display:block;margin-top:12px}
+label.field:first-of-type{margin-top:0}
+label.field span{display:block;font-size:12px;font-weight:800;letter-spacing:.04em;margin-bottom:6px}
+input[type=text],textarea,select{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:16px;outline:none}
+input[type=text]:focus,textarea:focus{border-color:var(--ink)}
+textarea{resize:vertical;min-height:64px}
+.photo-drop{border:2px dashed var(--line);border-radius:14px;padding:14px;text-align:center;background:var(--bg)}
+.photo-drop strong{font-size:14px}
+.photo-drop p{margin:4px 0 10px;font-size:12.5px;color:var(--muted)}
+input[type=file]{display:block;margin:10px auto 0;max-width:100%;font-size:13px;color:var(--muted)}
+input[type=file]::file-selector-button{background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:10px 18px;font-weight:800;font-size:14px;min-height:44px;cursor:pointer;margin-right:10px}
+.photo-tools{display:none;margin-top:12px;gap:12px}
+.photo-tools.show{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.photo-tools label{font-size:12px;font-weight:700}
+input[type=range]{width:100%;accent-color:var(--ink);min-height:36px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:0 16px;font-weight:800;font-size:14px;cursor:pointer;min-height:44px}
+.pill[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill.dim{opacity:.45}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatch{width:44px;height:44px;border-radius:50%;border:3px solid transparent;cursor:pointer;padding:0;position:relative;flex:none}
+.swatch[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.swatch-label{font-size:12px;color:var(--muted);margin-top:6px}
+.members{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:520px){.members{grid-template-columns:1fr 1fr}.actions{grid-template-columns:1fr 1fr 1fr}.actions .btn{font-size:13px;padding:0 8px}}
+.postbox{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px;white-space:pre-wrap;word-break:break-word;line-height:1.7}
+.foot{margin-top:16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7;padding:0 8px}
+.powered{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);text-align:center}
+.powered .pw-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.powered .pw-name{font-family:"M PLUS Rounded 1c",sans-serif;font-weight:900;font-size:15px;margin-top:2px}
+.powered .pw-links{margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.powered .pw-links a{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:800;color:var(--ink);text-decoration:none;min-height:40px}
+.powered .pw-links a:active{background:var(--surface2)}
+.date-auto-msg{font-size:12.5px;color:#3a7d00;font-weight:700;margin-top:6px;min-height:18px}
+@media (prefers-color-scheme: dark){ .date-auto-msg{color:#b8d900} }
+@keyframes dateFlash{0%{box-shadow:0 0 0 0 rgba(184,217,0,.0)}30%{box-shadow:0 0 0 4px rgba(184,217,0,.55)}100%{box-shadow:0 0 0 0 rgba(184,217,0,0)}}
+.date-flash{animation:dateFlash 1.1s ease}
+@media (prefers-reduced-motion: reduce){ .date-flash{animation:none} }
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.toggle-row span{font-size:13.5px;font-weight:700}
+.toggle{width:52px;height:32px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);position:relative;cursor:pointer;flex:none;padding:0;min-height:32px}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--ink);transition:.15s}
+.toggle[aria-pressed=true]{background:var(--accent)}
+.toggle[aria-pressed=true]::after{left:23px;background:#14161a}
+/* tournament autocomplete */
+.ac-wrap{position:relative}
+.ac-list{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;overflow:hidden;z-index:30;box-shadow:0 12px 32px rgba(0,0,0,.16);display:none;max-height:380px;overflow-y:auto}
+.ac-list.show{display:block}
+.ac-head{font-size:11.5px;font-weight:700;color:var(--muted);padding:8px 12px;background:var(--surface2)}
+.ac-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;background:var(--surface);color:var(--ink);border:0;border-top:1px solid var(--line);padding:10px 12px;cursor:pointer;min-height:44px}
+.ac-item:active{background:var(--surface2)}
+.ac-item .ac-name{font-size:15px;font-weight:700;line-height:1.35}
+.ac-item .ac-meta{font-size:12.5px;font-weight:700;color:var(--muted);line-height:1.4}
+.ac-none{padding:12px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
+.db-badge{display:inline-block;font-size:11px;font-weight:800;color:#3a7d00;background:#eef7d6;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
+@media (prefers-color-scheme: dark){ .db-badge{color:#b8d900;background:#26300a} }
+/* member icon colors */
+.icon-colors{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.icon-colors .ic-title{font-size:12px;font-weight:800;letter-spacing:.04em;margin-bottom:2px}
+.icon-colors .ic-note{font-size:12px;color:var(--muted);margin:0 0 4px}
+.icolor-row{display:flex;align-items:center;gap:7px;margin-top:8px}
+.icolor-row .who{font-size:12.5px;font-weight:700;width:86px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icolor-dot{width:32px;height:32px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;padding:0;flex:none;min-height:32px}
+.icolor-dot[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.db-link{margin:10px 0 0}
+.db-link a{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:13.5px;font-weight:800;color:var(--ink);text-decoration:none;min-height:44px}
+.db-link a:active{background:var(--line)}
+.ac-foot{display:block;padding:12px;font-size:13px;font-weight:800;color:var(--ink);background:var(--surface2);border-top:1px solid var(--line);text-decoration:none}
+.char-count{font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:0}
+.collapse-btn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:0;padding:4px 0;cursor:pointer;color:var(--ink);text-align:left;min-height:44px}
+.collapse-btn .chev{font-size:13px;color:var(--muted);flex:none}
+.collapse-body{display:none}
+.collapse-body.open{display:block}
+.sample-note{font-size:12.5px;color:var(--muted);margin:10px 2px 0;line-height:1.6}
+.sample-clear{width:100%;margin-top:8px}
+.notify-box{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.notify-box p{font-size:12.5px;color:var(--muted);margin:0 0 8px;line-height:1.6}
+.notify-box .btn{width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="lead">
+    <h1>大会リザルトメーカー</h1>
+    <p>勝利画面に大会名・結果・チーム名を重ねて、X投稿用のカードを作ります。</p>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-card" id="previewCard">
+    <div class="canvas-wrap"><canvas id="card" width="1200" height="675"></canvas></div>
+    <div class="actions">
+      <button class="btn btn-accent" id="btnCopy">画像をコピー</button>
+      <button class="btn btn-primary" id="btnShare">共有する</button>
+      <button class="btn btn-sub" id="btnDl">保存する</button>
+    </div>
+    <div class="status" id="copyStatus" aria-live="polite">入力するとプレビューが自動で更新されます</div>
+    <p class="sample-note">いま表示されている大会名・チーム名・メンバーは入力例（サンプル）です。各欄をタップすると消えるので、そのまま自分の内容を入力できます。</p>
+    <button class="btn btn-sub sample-clear" id="btnClearSample">サンプルをクリアして空欄から始める</button>
+  </div>
+
+  <!-- 1 Photo -->
+  <section class="section">
+    <h2><span class="num">1</span> 写真を選ぶ</h2>
+    <p class="hint">勝利画面や集合写真を選んでください。写真なしでも作れます。</p>
+    <div class="photo-drop">
+      <strong id="photoName">写真が未選択です</strong>
+      <p>スマホのアルバムから選んでください</p>
+      <input type="file" id="photoInput" accept="image/*" aria-label="写真を選ぶ">
+      <button class="btn btn-sub" id="btnClearPhoto" style="display:none;margin-left:6px;min-height:44px">写真を外す</button>
+    </div>
+    <div class="photo-tools" id="photoTools">
+      <label>拡大・縮小 <input type="range" id="zoomRange" min="100" max="220" value="100"></label>
+      <label>上下の位置 <input type="range" id="posRange" min="0" max="100" value="50"></label>
+    </div>
+  </section>
+
+  <!-- 2 Tournament -->
+  <section class="section">
+    <h2><span class="num">2</span> 大会と結果</h2>
+    <p class="hint">入力するとDB登録の大会が日時つきで候補に出ます。選ぶと開催日も入ります。ない大会は手入力でOKです。</p>
+    <label class="field"><span>大会名<span class="db-badge">DB連動</span></span></label>
+    <div class="ac-wrap">
+      <input type="text" id="tournament" placeholder="大会名を入力" value="ナワバリ杯 2024" autocomplete="off" maxlength="40">
+      <div class="ac-list" id="acList" role="listbox" aria-label="大会名の候補"></div>
+    </div>
+    <p class="db-link"><a href="https://bankara-taikai.github.io/" target="_blank" rel="noopener"><span>大会データベースで日時・詳細を確認する</span><span aria-hidden="true">→</span></a></p>
+    <label class="field"><span>結果（スタンプ）</span></label>
+    <div class="pills" id="resultPills" role="group" aria-label="結果">
+      <button class="pill" data-result="優勝" aria-pressed="true">🏆 優勝</button>
+      <button class="pill" data-result="準優勝" aria-pressed="false">準優勝</button>
+      <button class="pill" data-result="3位" aria-pressed="false">3位</button>
+      <button class="pill" data-result="ベスト4" aria-pressed="false">ベスト4</button>
+      <button class="pill" data-result="ベスト8" aria-pressed="false">ベスト8</button>
+      <button class="pill" data-result="ベスト16" aria-pressed="false">ベスト16</button>
+      <button class="pill" data-result="ベスト32" aria-pressed="false">ベスト32</button>
+      <button class="pill" data-result="予選" aria-pressed="false">予選</button>
+    </div>
+    <label class="field"><span>結果の自由入力（ボタンより優先・最大12文字） <span class="char-count" id="resultCount">0 / 12</span></span>
+      <input type="text" id="customResult" placeholder="例：スイスドロー3位" maxlength="12" autocomplete="off">
+    </label>
+
+    <label class="field"><span>バンドのカラー</span></label>
+    <div class="swatches" id="swatches"></div>
+    <div class="swatch-label" id="swatchLabel">ライム（デフォルト）</div>
+    <p class="hint" style="margin:4px 0 0">バンドの模様は、バンカラ大会通信のXアイコン中央のマークを薄く繰り返したものです。左端の盾マークの中にも同じマークが入ります。</p>
+
+    <div class="toggle-row">
+      <span>日付をバンドにバッジで入れる</span>
+      <button class="toggle" id="dateToggle" aria-pressed="true" aria-label="日付表示の切り替え"></button>
+    </div>
+    <label class="field" id="dateField"><span>開催日</span><input type="text" id="dateInput" placeholder="例：2026.11.28"></label>
+    <div class="date-auto-msg" id="dateAutoMsg" aria-live="polite"></div>
+  </section>
+
+  <!-- 3 Team -->
+  <section class="section">
+    <h2><span class="num">3</span> チームとメンバー</h2>
+    <p class="hint">空欄のメンバーは表示されません。</p>
+    <label class="field"><span>チーム名</span><input type="text" id="team" placeholder="チーム名を入力" value="Team VeronIKA"></label>
+    <label class="field"><span>メンバー（最大4人）</span></label>
+    <div class="members">
+      <input type="text" class="member" placeholder="プレイヤー名" value="VeronIKA">
+      <input type="text" class="member" placeholder="プレイヤー名" value="AnemoneNo1">
+      <input type="text" class="member" placeholder="プレイヤー名" value="YARRwhal">
+      <input type="text" class="member" placeholder="プレイヤー名" value="Stephanie">
+    </div>
+    <div class="icon-colors">
+      <button type="button" class="collapse-btn" id="iconToggle" aria-expanded="false" aria-controls="iconColorBody">
+        <span class="ic-title">メンバーアイコンの色（任意）</span>
+        <span class="chev" id="iconChev">開く ▾</span>
+      </button>
+      <div class="collapse-body" id="iconColorBody">
+        <p class="ic-note">初期設定は左から 水色・緑・紫・オレンジ。変えたい人だけ1人ずつ選べます。</p>
+        <div id="iconColorRows"></div>
+      </div>
+    </div>
+    <label class="field"><span>一言（投稿文に入ります）</span>
+      <textarea id="comment" placeholder="例：決勝はフルセットでした！"></textarea>
+    </label>
+  </section>
+
+  <!-- 4 Post text -->
+  <section class="section">
+    <h2><span class="num">4</span> 投稿文</h2>
+    <p class="hint">そのままコピーしてXに貼れます。末尾の #大会リザルトメーカー は消しても構いません。</p>
+    <div class="postbox" id="postText"></div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn btn-primary" id="btnCopyText" style="flex:1">投稿文をコピー</button>
+      <a class="btn btn-sub" id="btnOpenX" href="https://x.com/compose/post" target="_blank" rel="noopener" style="flex:1;text-decoration:none">Xを開く</a>
+    </div>
+    <div class="status" id="textStatus"></div>
+    <div class="notify-box">
+      <p>任意：知らせると @bankara_taikai にメンションで届き、結果紹介の参考になります。</p>
+      <a class="btn btn-sub" id="btnNotify" href="https://x.com/intent/post" target="_blank" rel="noopener" style="text-decoration:none">結果をバンカラ大会通信に知らせる（任意）</a>
+    </div>
+  </section>
+
+  <p class="foot">「画像をコピー」→ Xで貼り付け →「投稿文をコピー」の順が速いです。</p>
+
+  <footer class="powered">
+    <div class="pw-label">Powered by</div>
+    <div class="pw-name">バンカラ大会通信</div>
+    <div class="pw-links">
+      <a href="https://x.com/bankara_taikai" target="_blank" rel="noopener">X @bankara_taikai</a>
+      <a href="https://bankara-taikai.github.io/" target="_blank" rel="noopener">大会データベース</a>
+      <a href="https://note.com/bankara_taikai" target="_blank" rel="noopener">note</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+const W=1200,H=675,BAND_H=78;
+const canvas=document.getElementById('card'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);
+
+/* バンカラ大会データベース登録分（2026-11-28時点・大会名＋開催日時）。d/tはDBの開催日・開始時刻、シリーズ名は空欄 */
+const TOURNAMENTS=[
+{"n":"Canvas Cup 14th.","d":"2026-11-27","t":"21:00"},
+{"n":"AREA CUP Live!","d":"2026-12-05","t":"12:00"},
+{"n":"#21 れんれん杯 コスト10000","d":"2026-11-27","t":"22:00"},
+{"n":"2人1組ペア大会（初心者歓迎）","d":"2026-12-12","t":"13:00"},
+{"n":"AIM KING CUP","d":"2026-12-03","t":""},
+{"n":"BLUEFIN TUNA CUP ep02","d":"2026-11-27","t":"22:00"},
+{"n":"Blitz Cup -電光石火- 老若男女ガチアサリ","d":"2026-12-05","t":"22:00"},
+{"n":"CORE RANGE CUP","d":"2026-12-05","t":"22:00"},
+{"n":"GranDreamCUP","d":"2026-11-28","t":"20:00"},
+{"n":"HaruiLobby -Vol.5-","d":"2026-12-05","t":"22:00"},
+{"n":"IGL杯 5人制大会","d":"2026-11-29","t":"21:00"},
+{"n":"Queens cup","d":"2026-12-19","t":"21:00"},
+{"n":"Salmon Party！mini #2","d":"2026-12-26","t":"13:00"},
+{"n":"Sparkle Cup the 4th","d":"2026-11-27","t":"22:00"},
+{"n":"SplashGo! #14.5 in OSAKA","d":"2026-12-27","t":"10:00"},
+{"n":"TWI cup 10300","d":"2026-11-23","t":"22:00"},
+{"n":"mini＊2wins杯35","d":"2026-11-24","t":"21:00"},
+{"n":"「冥」「冥」ナモCUP","d":"2026-12-19","t":"21:00"},
+{"n":"あいざっくイカップル","d":"2026-11-29","t":"21:00"},
+{"n":"あそびばVSリスナー","d":"2026-11-29","t":"21:00"},
+{"n":"あにゃむす杯","d":"2026-12-04","t":"21:00"},
+{"n":"いかてらす #4 ナワバリバトル","d":"2026-12-13","t":"14:30"},
+{"n":"うれっしーイカップル杯","d":"2026-12-06","t":"21:00"},
+{"n":"えんじょいかっぷ 第18回","d":"2026-11-25","t":"23:00"},
+{"n":"ごにょ杯 コスト制エリア10800","d":"2026-11-24","t":"22:00"},
+{"n":"ごにょ杯 ナワバリ #20","d":"2026-11-30","t":"22:00"},
+{"n":"ごにょ杯 ナワバリ EXTRA","d":"2026-12-12","t":"21:30"},
+{"n":"ごにょ杯 ナワバリトーナメント","d":"2026-11-25","t":"21:30"},
+{"n":"ごにょ杯 武器ランダムイカップル","d":"2026-11-28","t":"23:00"},
+{"n":"さざなみ杯","d":"2026-11-28","t":"22:00"},
+{"n":"しらおかGO! #4","d":"2026-11-29","t":"10:30"},
+{"n":"しるべ杯9600","d":"2026-12-12","t":"22:00"},
+{"n":"ちあっぷる杯ｰコスト10800","d":"2026-12-23","t":"21:00"},
+{"n":"ちゃんうめ杯vol.3","d":"2026-12-19","t":"22:00"},
+{"n":"ちゃんうめ杯vol.4","d":"2026-12-27","t":"22:00"},
+{"n":"ちりこん杯","d":"2026-12-19","t":"22:00"},
+{"n":"てり杯 24-27部門","d":"2026-12-07","t":"22:00"},
+{"n":"とらきん杯","d":"2026-11-28","t":"21:00"},
+{"n":"はぜカップ","d":"2026-12-12","t":"22:00"},
+{"n":"オタク杯3.5 文化祭～Revenge～","d":"2026-12-11","t":"21:00"},
+{"n":"オプ100人記念ペア杯","d":"2026-11-28","t":"19:00"},
+{"n":"ギャモ杯U-80","d":"2026-12-05","t":""},
+{"n":"クリスマスちあっぷる杯！！","d":"2026-12-20","t":"21:00"},
+{"n":"クリスマス記念タイマン杯","d":"2026-12-24","t":"21:00"},
+{"n":"クレイジーカップル杯","d":"2026-12-27","t":"22:00"},
+{"n":"コスト7800！さあみんなでバトル祭りだー！！","d":"2026-12-19","t":"22:00"},
+{"n":"ナワバリフェス2026秋 敗者復活戦","d":"2026-11-23","t":"20:00"},
+{"n":"ナワバリフェス2026秋 王者決定戦","d":"2026-11-28","t":"20:00"},
+{"n":"ペアマッチングてり杯","d":"2026-12-05","t":"22:00"},
+{"n":"ヤグラ争奪大決戦 ～ヤグラ取物語～ 第二章 三色決戦","d":"2026-12-19","t":"22:30"},
+{"n":"ランダム武器エリア杯","d":"2026-12-20","t":"15:45"},
+{"n":"ワイパー優遇杯コスト11000","d":"2026-12-18","t":"22:00"},
+{"n":"亜種武器杯","d":"2026-12-06","t":"21:00"},
+{"n":"冷笑杯","d":"2026-12-20","t":"22:00"},
+{"n":"寿都町クリスマス大会","d":"2026-12-13","t":""},
+{"n":"新英雄杯 冬の陣","d":"2026-12-19","t":"21:00"},
+{"n":"星屑ロンリネス杯 #3","d":"2026-11-28","t":"22:00"},
+{"n":"星屑ロンリネス杯 #4","d":"2026-12-12","t":"21:00"},
+{"n":"星屑ロンリネス杯 #5","d":"2026-12-26","t":"22:00"},
+{"n":"星座いかっぷる","d":"2026-12-12","t":"21:00"},
+{"n":"そあっぷる","d":"","t":""},
+{"n":"突発 我がっぷる杯","d":"2026-11-27","t":"22:00"},
+{"n":"突発あるっぷる","d":"2026-11-24","t":"22:00"},
+{"n":"突発うおっぷる！","d":"2026-11-25","t":"22:00"},
+{"n":"突発たそ杯","d":"2026-11-26","t":"21:00"},
+{"n":"突発ランダムイカップル杯","d":"2026-11-28","t":"00:00"},
+{"n":"第10回2wins杯（仮）","d":"2026-12-24","t":"21:00"},
+{"n":"第12回らてっぷる杯 無制限","d":"2026-12-18","t":"21:00"},
+{"n":"第16回 みもペア鮭杯","d":"2026-11-29","t":"21:00"},
+{"n":"第1回 そらっぷる ～コスト5000編～","d":"2026-12-05","t":"21:00"},
+{"n":"第1回 思い立ったが吉日！杯 ~武器ランダム~","d":"2026-12-12","t":"21:00"},
+{"n":"第1回ちゃんうめ杯でゅおっ！","d":"2026-11-27","t":"22:00"},
+{"n":"第1回にあのっち杯","d":"2026-12-05","t":"22:00"},
+{"n":"第1回武器統一わさっぷる！","d":"2026-12-12","t":"21:00"},
+{"n":"第2回 Symphony Cup","d":"2026-12-11","t":"22:00"},
+{"n":"第2回くらっぷる 5000","d":"2026-12-12","t":"22:00"},
+{"n":"第2回じみー生誕祭","d":"2026-12-05","t":"22:00"},
+{"n":"第2回りちっぷる杯","d":"2026-12-25","t":"21:00"},
+{"n":"第2回カーボン必須杯","d":"2026-12-05","t":"21:00"},
+{"n":"第2回ニワトリ杯 7500","d":"2026-12-19","t":"22:00"},
+{"n":"第3回 つなめろっぷる","d":"2026-12-13","t":"21:00"},
+{"n":"第3回くらっぷる 5300","d":"2026-12-13","t":"22:00"},
+{"n":"第4回 まなみ杯","d":"2026-12-19","t":"21:00"},
+{"n":"第4回ひとけた杯","d":"2026-12-05","t":"22:00"},
+{"n":"第61回唐突！らっしーイカップル杯","d":"2026-11-26","t":"22:00"},
+{"n":"第7回りるりる杯","d":"2026-12-21","t":"22:00"},
+{"n":"第8回+α杯","d":"2026-11-28","t":"22:00"},
+{"n":"第三回あるっぷる杯","d":"2026-11-29","t":"21:00"},
+{"n":"第二回 ドリンクごくごく杯 ～クリスマスパーティーナイト～","d":"2026-12-11","t":"21:00"},
+{"n":"第六回龍鱗杯","d":"2026-12-12","t":"21:00"},
+{"n":"第四回ひめまる杯","d":"2026-11-23","t":"21:00"},
+{"n":"第１回ゆずっと黄金杯","d":"2026-11-28","t":"17:00"},
+{"n":"編成固定杯","d":"2026-12-12","t":"22:00"},
+{"n":"アサリップル杯 ダブルイカップル メリクリ！","d":"2026-12-26","t":"21:00"},
+{"n":"ガチアサリの日杯 コストなしスイスドロー","d":"2026-12-13","t":"21:00"},
+{"n":"🌱第2回たにもとイカップル杯🌱","d":"2026-12-18","t":"21:00"},
+{"n":"🌱第9回わかあつ杯 ヤグラ10000 更新時期で軽減あり🌱","d":"2026-12-12","t":"22:00"}
+];
+
+const BAND_COLORS=[
+  {name:'ライム（デフォルト）', hex:'#C6E200', text:'#1c2400'},
+  {name:'インクイエロー', hex:'#FFE600', text:'#221f00'},
+  {name:'シアン', hex:'#00C8E0', text:'#00222a'},
+  {name:'ピンク', hex:'#FF5FA2', text:'#2a0014'},
+  {name:'オレンジ', hex:'#FF8A1E', text:'#2a1500'},
+  {name:'ブルー', hex:'#2F6BFF', text:'#ffffff'},
+  {name:'レッド', hex:'#FF3B30', text:'#ffffff'},
+  {name:'グリーン', hex:'#00B36B', text:'#ffffff'},
+  {name:'パープル', hex:'#7C4DFF', text:'#ffffff'},
+  {name:'ブラック', hex:'#17181c', text:'#ffffff'},
+];
+const ICON_PALETTE=[
+  {name:'水色', hex:'#19b8d6'},
+  {name:'緑', hex:'#7ac74f'},
+  {name:'紫', hex:'#b45cff'},
+  {name:'オレンジ', hex:'#ff9f1a'},
+  {name:'ピンク', hex:'#ff5a7a'},
+  {name:'黄色', hex:'#ffd400'},
+  {name:'青', hex:'#2f6bff'},
+  {name:'ミント', hex:'#14b8a6'}
+];
+let state={ band:0, result:'優勝', photo:null, zoom:1, posY:0.5, showDate:true, memberColors:[0,1,2,3] };
+
+/* 架空サンプル：初期表示では完成形を見せるための入力例。
+   ユーザーが欄にフォーカスした最初の1回だけ、まだサンプルのままなら自動で消す。
+   自分で入力した内容は（サンプルと同文でも）二度と消さない。 */
+const sampleFields=[];
+function registerSampleField(el){
+  if(!el) return;
+  el.dataset.sampleValue=el.value;
+  el.dataset.sampleActive= el.value ? 'true' : 'false';
+  sampleFields.push(el);
+}
+function clearSampleField(el){
+  if(!el) return false;
+  const wasSample = el.dataset.sampleActive==='true' && el.value===el.dataset.sampleValue;
+  el.dataset.sampleActive='false';
+  if(wasSample){ el.value=''; return true; }
+  return false;
+}
+registerSampleField($('tournament'));
+registerSampleField($('team'));
+document.querySelectorAll('.member').forEach(registerSampleField);
+
+function getResult(){
+  const c=($('customResult').value||'').trim();
+  return c || state.result;
+}
+
+/* swatches */
+const swWrap=$('swatches');
+BAND_COLORS.forEach((c,i)=>{
+  const b=document.createElement('button'); b.className='swatch'; b.style.background=c.hex; b.setAttribute('aria-pressed', i===0?'true':'false'); b.setAttribute('aria-label',c.name); b.title=c.name;
+  b.addEventListener('click',()=>{ state.band=i; swWrap.querySelectorAll('.swatch').forEach((s,j)=>s.setAttribute('aria-pressed', j===i?'true':'false')); $('swatchLabel').textContent=c.name; draw(); });
+  swWrap.appendChild(b);
+});
+/* result pills */
+function refreshPills(){
+  const custom=($('customResult').value||'').trim().length>0;
+  $('resultPills').querySelectorAll('.pill').forEach(p=>{
+    p.setAttribute('aria-pressed', p.dataset.result===state.result && !custom ?'true':'false');
+    p.classList.toggle('dim', custom);
+  });
+}
+$('resultPills').addEventListener('click',e=>{
+  const b=e.target.closest('[data-result]'); if(!b) return;
+  state.result=b.dataset.result;
+  $('customResult').value='';
+  refreshPills(); draw(); updatePost();
+});
+$('customResult').addEventListener('input',()=>{ $('resultCount').textContent=($('customResult').value||'').length+' / 12'; refreshPills(); draw(); updatePost(); });
+$('iconToggle').addEventListener('click',()=>{
+  const body=$('iconColorBody'); const open=body.classList.toggle('open');
+  $('iconToggle').setAttribute('aria-expanded', open?'true':'false');
+  $('iconChev').textContent= open ? '閉じる ▴' : '開く ▾';
+});
+/* date toggle */
+$('dateToggle').addEventListener('click',()=>{
+  state.showDate=!state.showDate;
+  $('dateToggle').setAttribute('aria-pressed', state.showDate?'true':'false');
+  $('dateField').style.display=state.showDate?'block':'none';
+  if(state.showDate && !$('dateInput').value){ const d=new Date(); $('dateInput').value=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0'); }
+  draw(); updatePost();
+});
+
+/* tournament autocomplete (DB補完：大会名＋開催日時) */
+const tInput=$('tournament'), acList=$('acList');
+const DOW=['日','月','火','水','木','金','土'];
+function norm(s){ return (s||'').toLowerCase().replace(/\s+/g,''); }
+function fmtWhen(e){
+  if(!e.d) return 'シリーズ名 — 開催日はデータベースで確認';
+  const dt=new Date(e.d+'T00:00:00');
+  const label=e.d.replace(/-/g,'.')+'（'+DOW[dt.getDay()]+'）';
+  return label+(e.t ? ' '+e.t+'〜' : ' 時刻未確認');
+}
+function applyDate(iso){
+  if(!iso) return;
+  state.showDate=true;
+  $('dateToggle').setAttribute('aria-pressed','true');
+  $('dateField').style.display='block';
+  const formatted=iso.replace(/-/g,'.');
+  $('dateInput').value=formatted;
+  const msg=$('dateAutoMsg');
+  if(msg){
+    msg.textContent='✓ 候補から開催日 '+formatted+' を自動入力しました（バンドにも表示されます）';
+    const inp=$('dateInput');
+    inp.classList.remove('date-flash'); void inp.offsetWidth; inp.classList.add('date-flash');
+  }
+}
+function showAC(){
+  const q=norm(tInput.value);
+  const hits = q ? TOURNAMENTS.filter(e=>norm(e.n).includes(q)).slice(0,8) : TOURNAMENTS.slice(0,8);
+  acList.innerHTML='';
+  const head=document.createElement('div'); head.className='ac-head';
+  head.textContent = q ? '大会データベースの候補（'+hits.length+'件）' : '大会データベースから選ぶ（全'+TOURNAMENTS.length+'件）';
+  acList.appendChild(head);
+  if(!hits.length){
+    const d=document.createElement('div'); d.className='ac-none'; d.textContent='データベースに一致する大会がありません。そのまま手入力でOKです。'; acList.appendChild(d);
+  }
+  hits.forEach(e=>{
+    const b=document.createElement('button'); b.type='button'; b.className='ac-item'; b.setAttribute('role','option');
+    const nm=document.createElement('span'); nm.className='ac-name'; nm.textContent=e.n;
+    const mt=document.createElement('span'); mt.className='ac-meta'; mt.textContent=fmtWhen(e);
+    b.appendChild(nm); b.appendChild(mt);
+    b.addEventListener('click',()=>{ tInput.value=e.n; if(e.d){ applyDate(e.d); } else { const m=$('dateAutoMsg'); if(m) m.textContent='この候補はシリーズ名のため開催日は未設定です。必要なら下の「開催日」から入力してください'; } hideAC(); draw(); updatePost(); });
+    acList.appendChild(b);
+  });
+  const foot=document.createElement('a'); foot.className='ac-foot'; foot.href='https://bankara-taikai.github.io/'; foot.target='_blank'; foot.rel='noopener';
+  foot.textContent='日時や詳細は大会データベースで確認する →';
+  acList.appendChild(foot);
+  acList.classList.add('show');
+}
+function hideAC(){ acList.classList.remove('show'); }
+tInput.addEventListener('focus', ()=>{ if(clearSampleField(tInput)){ draw(); updatePost(); } showAC(); });
+tInput.addEventListener('input', ()=>{ showAC(); draw(); updatePost(); });
+document.addEventListener('click', e=>{ if(!e.target.closest('.ac-wrap')) hideAC(); });
+tInput.addEventListener('keydown', e=>{ if(e.key==='Escape') hideAC(); });
+
+/* member icon color pickers */
+const icRows=$('iconColorRows');
+for(let mi=0; mi<4; mi++){
+  const row=document.createElement('div'); row.className='icolor-row';
+  const who=document.createElement('span'); who.className='who'; who.id='who'+mi; who.textContent='メンバー'+(mi+1);
+  row.appendChild(who);
+  ICON_PALETTE.forEach((c,ci)=>{
+    const d=document.createElement('button'); d.type='button'; d.className='icolor-dot'; d.style.background=c.hex; d.title=c.name; d.setAttribute('aria-label','メンバー'+(mi+1)+'のアイコン色：'+c.name); d.setAttribute('aria-pressed', state.memberColors[mi]===ci?'true':'false');
+    d.addEventListener('click',()=>{ state.memberColors[mi]=ci; row.querySelectorAll('.icolor-dot').forEach((x,j)=>x.setAttribute('aria-pressed', j===ci?'true':'false')); draw(); });
+    row.appendChild(d);
+  });
+  icRows.appendChild(row);
+}
+function refreshWho(){
+  document.querySelectorAll('.member').forEach((m,i)=>{ const el=$('who'+i); if(el) el.textContent=(m.value.trim()||('メンバー'+(i+1))); });
+}
+
+/* photo */
+let photoImg=null;
+$('photoInput').addEventListener('change',e=>{
+  const f=e.target.files && e.target.files[0]; if(!f) return;
+  const url=URL.createObjectURL(f); const img=new Image();
+  img.onload=()=>{ photoImg=img; state.photo=f.name; $('photoName').textContent='✓ '+f.name; $('photoTools').classList.add('show'); $('btnClearPhoto').style.display='inline-flex'; draw(); };
+  img.src=url;
+});
+$('btnClearPhoto').addEventListener('click',()=>{ photoImg=null; state.photo=null; $('photoInput').value=''; $('photoName').textContent='写真が未選択です'; $('photoTools').classList.remove('show'); $('btnClearPhoto').style.display='none'; draw(); });
+$('zoomRange').addEventListener('input',e=>{ state.zoom=e.target.value/100; draw(); });
+$('posRange').addEventListener('input',e=>{ state.posY=e.target.value/100; draw(); });
+
+/* inputs */
+['team','dateInput','comment'].forEach(id=> $(id).addEventListener('input',()=>{draw();updatePost();}));
+document.querySelectorAll('.member').forEach(m=>m.addEventListener('input',()=>{refreshWho();draw();updatePost();}));
+
+function members(){ return Array.from(document.querySelectorAll('.member')).map(m=>m.value.trim()).filter(Boolean); }
+function membersRaw(){ return Array.from(document.querySelectorAll('.member')).map(m=>m.value.trim()); }
+function stampColors(){
+  const r=getResult();
+  if(r==='優勝') return {bg:'#3b2fd6', fg:'#ffffff', sub:'#ffd400'};
+  if(r==='準優勝') return {bg:'#5b6b7f', fg:'#ffffff', sub:'#dbe6f2'};
+  if(r==='3位') return {bg:'#9a5a1e', fg:'#ffffff', sub:'#ffd9a0'};
+  if(r.indexOf('優勝')>=0) return {bg:'#3b2fd6', fg:'#ffffff', sub:'#ffd400'};
+  return {bg:'#0f766e', fg:'#ffffff', sub:'#a7f3ea'};
+}
+function roundRect(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+
+/* バンカラ大会通信のXアイコン中央にあるマーク（ユーザー提供の実アイコンから寸法を実測）。
+   ラテン文字のBではなく、角ばった2本柱のシルエット：
+   ・左右の縦柱が全高を通る（柱幅は外形幅の約25%ずつ）
+   ・上部は中央が開き、中段と下段に横バー、下段との間に四角い窓が開く
+   実測（400×400アイコン上）：外形 x128–276 / y103–291（149×189）、
+   柱 x128–165・239–276、中段バー y185–220、下段バー y256–291。
+   その比率のまま矩形で再現し、上部の開きと窓は evenodd で抜く。 */
+function bankaraMarkPath(s){
+  const hw=0.394*s, ix=0.193*s;                 /* 外形の半幅 / 開き・窓の半幅 */
+  const top=-0.5*s;
+  const midTop=-0.066*s;                        /* 中段バーの上端 */
+  const winTop=0.124*s, winBot=0.310*s;         /* 窓の上端・下端（=下段バーの上端） */
+  const p=new Path2D();
+  p.rect(-hw, top, hw*2, s);                    /* 外形 */
+  p.rect(-ix, top, ix*2, midTop-top);           /* 上部の開き */
+  p.rect(-ix, winTop, ix*2, winBot-winTop);     /* 中段と下段の間の窓 */
+  return p;
+}
+function drawBankaraMark(c,x,y,s,color,alpha){
+  c.save(); c.translate(x,y);
+  c.globalAlpha=(alpha==null?1:alpha); c.fillStyle=color;
+  c.fill(bankaraMarkPath(s),'evenodd');
+  c.restore();
+}
+
+function draw(){
+  const band=BAND_COLORS[state.band];
+  const tournament=($('tournament').value||'大会名').trim()||'大会名';
+  const team=($('team').value||'チーム名').trim()||'チーム名';
+  const memRaw=membersRaw();
+  const mem=members();
+  const result=getResult();
+  ctx.clearRect(0,0,W,H);
+  /* photo / background */
+  if(photoImg){
+    const iw=photoImg.naturalWidth, ih=photoImg.naturalHeight;
+    const scale=Math.max(W/iw, H/ih)*state.zoom;
+    const dw=iw*scale, dh=ih*scale;
+    const dx=(W-dw)/2;
+    const maxOff=Math.max(0, dh-H); const dy=-maxOff*state.posY;
+    ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,H); ctx.clip();
+    ctx.drawImage(photoImg,dx,dy,dw,dh); ctx.restore();
+  } else {
+    const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#0e2f7a'); g.addColorStop(.55,'#1256b8'); g.addColorStop(1,'#0aa0c8');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(255,255,255,.08)';
+    for(let i=0;i<26;i++){ const x=(i*173)%W, y=110+((i*97)%430), r=18+((i*13)%36); ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+    ctx.fillStyle='rgba(255,255,255,.92)'; ctx.textAlign='center';
+    ctx.font='900 30px "M PLUS Rounded 1c","Noto Sans JP",sans-serif';
+    ctx.fillText('写真を選ぶとここに入ります', W/2, 300);
+    ctx.font='700 19px "Noto Sans JP",sans-serif'; ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.fillText('写真なしでも、このままカードとして使えます', W/2, 334);
+  }
+  /* subtle bottom shade for bar legibility */
+  const shade=ctx.createLinearGradient(0,H-190,0,H); shade.addColorStop(0,'rgba(0,0,0,0)'); shade.addColorStop(1,'rgba(0,0,0,.28)');
+  ctx.fillStyle=shade; ctx.fillRect(0,H-190,W,190);
+
+  /* stamp metrics (needed early to lay out the date badge) */
+  const sc=stampColors();
+  let sfs = result.length<=2 ? 38 : (result.length<=4 ? 32 : (result.length<=7 ? 27 : 22));
+  ctx.font='900 '+sfs+'px "M PLUS Rounded 1c","Noto Sans JP",sans-serif';
+  const stampTextW=ctx.measureText(result).width;
+  const stampW=Math.max(168, stampTextW+92), stampH=72;
+
+  /* top band */
+  ctx.fillStyle=band.hex; ctx.fillRect(0,0,W,BAND_H);
+  /* band pattern: Xアイコン中央のマークを、実物の向きのまま薄く繰り返す。
+     本家サンプルの帯模様の文法（同系色・一列リピート）はそのままに、
+     模様そのものをウチのマークに置き換えたもの。
+     明るい帯では黒を、暗い帯では白を薄く重ね、大会名より前に出ない濃さにする。 */
+  ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,BAND_H); ctx.clip();
+  const onDarkBand = band.text==='#ffffff';
+  const patColor = onDarkBand ? '#ffffff' : '#000000';
+  const patAlpha = onDarkBand ? 0.13 : 0.075;
+  for(let px=118; px<W+50; px+=88){
+    drawBankaraMark(ctx, px, BAND_H/2+1, 38, patColor, patAlpha);
+  }
+  ctx.restore();
+  /* shield mark: 中も星ではなく同じマーク。
+     ここがXアイコンと地続きに見える、いちばん分かりやすい置き場所。 */
+  ctx.save(); ctx.translate(46,39);
+  ctx.fillStyle='#17181c'; ctx.beginPath(); ctx.moveTo(0,-28); ctx.lineTo(24,-20); ctx.lineTo(24,6); ctx.quadraticCurveTo(24,24,0,32); ctx.quadraticCurveTo(-24,24,-24,6); ctx.lineTo(-24,-20); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  drawBankaraMark(ctx, 46, 40, 30, band.hex==='#17181c' ? '#C6E200' : band.hex, 1);
+  /* tournament name */
+  const dateStr = state.showDate ? $('dateInput').value.trim() : '';
+  let dateBadgeW=0;
+  if(dateStr){ ctx.font='900 25px "Noto Sans JP",sans-serif'; dateBadgeW=ctx.measureText(dateStr).width+38; }
+  ctx.fillStyle=band.text; ctx.textAlign='left'; ctx.textBaseline='middle';
+  let fs=44; ctx.font='900 '+fs+'px "M PLUS Rounded 1c","Noto Sans JP",sans-serif';
+  const maxTW = Math.max(220, (W-stampW-40) - 84 - (dateStr ? dateBadgeW+14 : 0));
+  while(ctx.measureText(tournament).width>maxTW && fs>22){ fs-=2; ctx.font='900 '+fs+'px "M PLUS Rounded 1c","Noto Sans JP",sans-serif'; }
+  ctx.fillText(tournament, 84, BAND_H/2+2);
+  /* date badge: white pill with bold dark text, left of the stamp */
+  if(dateStr){
+    const badgeH=46, badgeX=W-stampW-28-dateBadgeW, badgeY=(BAND_H-badgeH)/2;
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,.25)'; ctx.shadowBlur=6; ctx.shadowOffsetY=2;
+    ctx.fillStyle='rgba(255,255,255,.95)'; roundRect(ctx,badgeX,badgeY,dateBadgeW,badgeH,23); ctx.fill(); ctx.restore();
+    ctx.fillStyle='#14161a'; ctx.font='900 25px "Noto Sans JP",sans-serif'; ctx.textAlign='center';
+    ctx.fillText(dateStr, badgeX+dateBadgeW/2, BAND_H/2+2);
+  }
+  ctx.textBaseline='alphabetic';
+
+  /* stamp (width adapts to text length) */
+  const stampCX=W-stampW/2-12, stampCY=58;
+  ctx.save(); ctx.translate(stampCX, stampCY); ctx.rotate(-0.06);
+  ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=4;
+  ctx.fillStyle=sc.bg; roundRect(ctx,-stampW/2,-stampH/2,stampW,stampH,10); ctx.fill();
+  ctx.shadowColor='transparent';
+  ctx.strokeStyle='rgba(255,255,255,.95)'; ctx.lineWidth=3; roundRect(ctx,-stampW/2+7,-stampH/2+7,stampW-14,stampH-14,7); ctx.stroke();
+  ctx.fillStyle=sc.sub; ctx.font='900 20px sans-serif'; ctx.textAlign='left'; ctx.fillText('★',-stampW/2+16,8); ctx.textAlign='right'; ctx.fillText('★',stampW/2-16,8);
+  ctx.fillStyle=sc.fg; ctx.textAlign='center';
+  ctx.font='900 '+sfs+'px "M PLUS Rounded 1c","Noto Sans JP",sans-serif';
+  ctx.fillText(result, 0, sfs*0.36);
+  ctx.restore();
+
+  /* bottom black bar */
+  const barW=Math.min(760, W-48), barX=(W-barW)/2, barY=H-118, barH=96;
+  ctx.save(); ctx.shadowColor='rgba(0,0,0,.4)'; ctx.shadowBlur=14; ctx.shadowOffsetY=5;
+  ctx.fillStyle='#0c0d10'; roundRect(ctx,barX,barY,barW,barH,18); ctx.fill(); ctx.restore();
+  ctx.fillStyle='#fff'; ctx.textAlign='center';
+  let tfs=34; ctx.font='900 '+tfs+'px "M PLUS Rounded 1c","Noto Sans JP",sans-serif';
+  while(ctx.measureText(team).width>barW-40 && tfs>18){ tfs-=2; ctx.font='900 '+tfs+'px "M PLUS Rounded 1c","Noto Sans JP",sans-serif'; }
+  ctx.fillText(team, W/2, barY+40);
+  /* members row (icon color = per-member setting, keyed to the member's slot) */
+  if(mem.length){
+    ctx.font='800 20px "Noto Sans JP",sans-serif';
+    const items=[]; memRaw.forEach((m,i)=>{ if(m) items.push({name:m, slot:i}); });
+    const widths=items.map(it=> 26 + ctx.measureText(it.name).width + 18);
+    const total=widths.reduce((a,b)=>a+b,0);
+    let cx=W/2 - total/2;
+    items.forEach((it,k)=>{
+      const w=widths[k];
+      ctx.fillStyle=ICON_PALETTE[state.memberColors[it.slot]%ICON_PALETTE.length].hex; ctx.beginPath(); ctx.arc(cx+13, barY+70, 11, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font='900 12px sans-serif'; ctx.textAlign='center'; ctx.fillText('♪', cx+13, barY+74);
+      ctx.fillStyle='#fff'; ctx.font='800 20px "Noto Sans JP",sans-serif'; ctx.textAlign='left'; ctx.fillText(it.name, cx+30, barY+77);
+      cx+=w;
+    });
+  }
+  /* credit */
+  ctx.fillStyle='rgba(255,255,255,.92)'; ctx.font='700 13px "Noto Sans JP",sans-serif'; ctx.textAlign='right';
+  ctx.shadowColor='rgba(0,0,0,.6)'; ctx.shadowBlur=4;
+  ctx.fillText('@bankara_taikai', W-12, H-8);
+  ctx.shadowColor='transparent';
+}
+
+function updatePost(){
+  const t=($('tournament').value||'').trim()||'大会名';
+  const team=($('team').value||'').trim();
+  const mem=members();
+  const c=($('comment').value||'').trim();
+  const r=getResult();
+  const d=state.showDate && $('dateInput').value.trim() ? $('dateInput').value.trim()+'開催 ' : '';
+  let lines=[];
+  lines.push(d+t+' で'+r+'しました！🏆');
+  if(team) lines.push('チーム：'+team+(mem.length ? '（'+mem.join(' / ')+'）' : ''));
+  if(c) lines.push(c);
+  lines.push('主催・運営のみなさま、対戦相手のみなさま、ありがとうございました！');
+  lines.push('#大会リザルトメーカー');
+  $('postText').textContent=lines.join('\n');
+  /* 任意の知らせるボタン：@bankara_taikai 宛ての投稿画面を開く（メンション＋結果概要＋ハッシュタグ入り） */
+  const notifyLines=[];
+  notifyLines.push('@bankara_taikai 大会リザルトメーカーで結果報告カードを作りました！');
+  notifyLines.push(d+t+' で'+r+'しました！'+(team ? '（チーム：'+team+'）' : ''));
+  notifyLines.push('#大会リザルトメーカー');
+  const notifyBtn=$('btnNotify');
+  if(notifyBtn) notifyBtn.href='https://x.com/intent/post?text='+encodeURIComponent(notifyLines.join('\n'));
+}
+
+function setStatus(el,msg,ok){ el.textContent=msg; el.className='status'+(ok?' ok':''); }
+function canvasBlob(){ return new Promise(res=>canvas.toBlob(res,'image/png')); }
+
+$('btnCopy').addEventListener('click', async ()=>{
+  try{
+    if(!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) throw new Error('unsupported');
+    const blob=await canvasBlob();
+    await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+    setStatus($('copyStatus'),'✓ 画像をコピーしました。Xの投稿画面で貼り付けてください',true);
+  }catch(e){
+    setStatus($('copyStatus'),'このブラウザでは画像コピーに未対応です。「共有する」か「保存する」を使ってください',false);
+  }
+});
+$('btnShare').addEventListener('click', async ()=>{
+  try{
+    const blob=await canvasBlob();
+    const file=new File([blob],'yusho-card.png',{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:'優勝報告カード'});
+      setStatus($('copyStatus'),'共有しました',true);
+    } else if(navigator.share){
+      await navigator.share({title:'優勝報告カード', text:$('postText').textContent});
+      setStatus($('copyStatus'),'テキストを共有しました（画像は「保存する」から添付してください）',true);
+    } else throw new Error('unsupported');
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+    setStatus($('copyStatus'),'共有に未対応のブラウザです。「保存する」を使ってください',false);
+  }
+});
+$('btnDl').addEventListener('click', async ()=>{
+  const blob=await canvasBlob(); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='yusho-card.png'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  setStatus($('copyStatus'),'✓ 画像を保存しました',true);
+});
+$('btnCopyText').addEventListener('click', async ()=>{
+  try{ await navigator.clipboard.writeText($('postText').textContent); setStatus($('textStatus'),'✓ 投稿文をコピーしました',true); }
+  catch(e){ setStatus($('textStatus'),'コピーできませんでした。文章を長押しで選択してください',false); }
+});
+
+/* サンプル欄（チーム名・メンバー）：初回フォーカスでサンプルだけ消す */
+sampleFields.forEach(f=>{
+  if(f===tInput) return;
+  f.addEventListener('focus', ()=>{ if(clearSampleField(f)){ draw(); updatePost(); refreshWho(); } });
+  f.addEventListener('input', ()=>{ if(f.value!==f.dataset.sampleValue) f.dataset.sampleActive='false'; });
+});
+tInput.addEventListener('input', ()=>{ if(tInput.value!==tInput.dataset.sampleValue) tInput.dataset.sampleActive='false'; });
+
+/* サンプルをまとめてクリア（まだサンプルのままの欄だけを空欄にする） */
+$('btnClearSample').addEventListener('click', ()=>{
+  let cleared=0;
+  sampleFields.forEach(f=>{ if(clearSampleField(f)) cleared++; });
+  draw(); updatePost(); refreshWho();
+  setStatus($('copyStatus'), cleared ? '✓ サンプルをクリアしました。空欄から入力できます' : 'クリアできるサンプルは残っていません', !!cleared);
+});
+
+refreshPills(); refreshWho();
+if(state.showDate && !$('dateInput').value){ const d=new Date(); $('dateInput').value=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0'); }
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ draw(); });
+draw(); updatePost();
+</script>
+</body>
+</html>
